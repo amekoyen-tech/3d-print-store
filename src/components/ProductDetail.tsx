@@ -13,8 +13,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
   const [showOrderForm, setShowOrderForm] = useState(false);
 
-  // Lead time calculation: (Print Time * Quantity + Post Processing) * 1.1 (buffer)
-  // Plus fixed overhead for machine setup (e.g., 60 mins)
+  // Lead time calculation
   const setupTime = 60; 
   const totalPrintTime = product.print_time_min * quantity;
   const leadTimeMin = (totalPrintTime + product.post_processing_time_min + setupTime) * 1.1;
@@ -23,10 +22,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const remainingHours = Math.floor((leadTimeMin % (24 * 60)) / 60);
 
   const leadTimeDisplay = days > 0 
-    ? `${days}d ${remainingHours}h` 
-    : `${remainingHours}h`;
+    ? `${days}天 ${remainingHours}小時` 
+    : `${remainingHours}小時`;
 
   const totalPrice = product.price * quantity;
+
+  const images = product.images || [];
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12">
@@ -37,7 +38,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
         className="flex items-center gap-2 text-gray-400 hover:text-[#FF5722] mb-8 transition-colors uppercase text-sm font-bold tracking-widest group"
       >
         <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-        Back to Workshop
+        返回工坊 (Back)
       </motion.button>
 
       <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -48,28 +49,34 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
           className="space-y-4"
         >
           <div className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-2xl overflow-hidden relative group">
-            <img 
-              src={product.images[0]} 
-              alt={product.name}
-              className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
-            />
+            {images[0] ? (
+              <img 
+                src={images[0]} 
+                alt={product.name}
+                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-700">NO IMAGE</div>
+            )}
             <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-xl border border-[#FF5722]/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-2xl">
               <div className="p-2 bg-[#FF5722]/20 rounded-lg">
                 <Package size={20} className="text-[#FF5722]" />
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Material</p>
+                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">材質 (Material)</p>
                 <p className="text-sm font-black tracking-tight">{product.materials.join(' / ')}</p>
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-4 gap-4">
-            {product.images.map((img, i) => (
-              <div key={i} className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-xl cursor-pointer hover:border-[#FF5722] transition-colors overflow-hidden opacity-50 hover:opacity-100">
-                 <img src={img} className="w-full h-full object-cover" />
-              </div>
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="grid grid-cols-4 gap-4">
+              {images.map((img, i) => (
+                <div key={i} className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-xl cursor-pointer hover:border-[#FF5722] transition-colors overflow-hidden opacity-50 hover:opacity-100">
+                   <img src={img} className="w-full h-full object-cover" alt={`view ${i}`} />
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Right: Product Info */}
@@ -86,7 +93,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             <div className="flex items-center gap-4">
               <p className="text-3xl text-[#FF5722] font-mono font-bold">${product.price}.00</p>
               <span className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[10px] uppercase font-bold tracking-widest text-gray-400">
-                In Stock & Ready
+                現貨供應 (In Stock)
               </span>
             </div>
           </div>
@@ -94,7 +101,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
           <div className="space-y-8 flex-grow">
             <div>
               <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                <Info size={14} className="text-[#FF5722]" /> Description
+                <Info size={14} className="text-[#FF5722]" /> 產品描述 (Description)
               </h3>
               <p className="text-gray-300 leading-relaxed font-light text-lg italic border-l-2 border-[#222] pl-6">
                 "{product.description}"
@@ -104,7 +111,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             {/* Quantity Selector */}
             <div className="space-y-4">
               <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-2">
-                Quantity
+                數量 (Quantity)
               </h3>
               <div className="flex items-center gap-6">
                 <div className="flex items-center bg-[#111] border border-[#333] rounded-xl p-1">
@@ -123,7 +130,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                   </button>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Price</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">總金額 (Total)</p>
                   <p className="text-2xl font-mono font-black text-white">${totalPrice}.00</p>
                 </div>
               </div>
@@ -136,7 +143,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-white/5 rounded-lg"><Clock size={18} className="text-gray-400" /></div>
-                  <span className="text-xs uppercase font-bold tracking-widest text-gray-400">Print Duration</span>
+                  <span className="text-xs uppercase font-bold tracking-widest text-gray-400">列印時間 (Print Time)</span>
                 </div>
                 <span className="font-mono text-lg">{Math.floor(totalPrintTime / 60)}h {totalPrintTime % 60}m</span>
               </div>
@@ -144,7 +151,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-white/5 rounded-lg"><Hammer size={18} className="text-gray-400" /></div>
-                  <span className="text-xs uppercase font-bold tracking-widest text-gray-400">Post-Processing</span>
+                  <span className="text-xs uppercase font-bold tracking-widest text-gray-400">後處理 (Post-Process)</span>
                 </div>
                 <span className="font-mono text-lg">{product.post_processing_time_min}m</span>
               </div>
@@ -153,8 +160,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-[#FF5722]/10 rounded-xl"><Shield size={24} className="text-[#FF5722]" /></div>
                   <div>
-                    <span className="text-[10px] uppercase font-black tracking-[0.2em] text-[#FF5722] block mb-1">Guaranteed Delivery Buffer</span>
-                    <span className="text-xs text-gray-500 uppercase font-bold">Estimated Lead Time</span>
+                    <span className="text-[10px] uppercase font-black tracking-[0.2em] text-[#FF5722] block mb-1">交貨保證</span>
+                    <span className="text-xs text-gray-500 uppercase font-bold">預估交期 (Lead Time)</span>
                   </div>
                 </div>
                 <motion.span 
@@ -174,7 +181,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             className="mt-12 group relative w-full overflow-hidden rounded-2xl bg-[#FF5722] p-5 font-black uppercase tracking-[0.3em] text-black transition-all hover:bg-[#E64A19] active:scale-[0.98] shadow-[0_20px_40px_rgba(255,87,34,0.2)]"
           >
             <span className="relative z-10 flex items-center justify-center gap-3">
-              Order Now <ShoppingCart size={20} />
+              立即訂購 (ORDER NOW) <ShoppingCart size={20} />
             </span>
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
           </button>
