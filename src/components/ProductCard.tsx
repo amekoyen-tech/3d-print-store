@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
 import { Clock, HardDrive, Zap, Box } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ProductCardProps {
   product: Product;
@@ -13,15 +14,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
   const minutes = totalTime % 60;
 
   return (
-    <div 
-      className="group relative glass-card hover:bg-white/[0.08] border-white/5 hover:border-[#FF5722]/50 transition-all duration-500 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full"
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.5 }}
+      className="group relative bg-[#111] border border-white/5 hover:border-[#FF5722]/50 transition-all duration-500 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full shadow-2xl"
       onClick={() => onClick(product)}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[#FF5722]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       {/* Product Image */}
       <div className="relative h-64 overflow-hidden">
-        <img 
+        <motion.img 
           src={product.images[0]} 
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -77,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
 
       {/* Industrial Accents */}
       <div className="h-[2px] w-0 bg-gradient-to-r from-[#FF5722] to-[#FF9800] transition-all duration-700 group-hover:w-full" />
-    </div>
+    </motion.div>
   );
 };
 

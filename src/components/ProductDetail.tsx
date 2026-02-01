@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Product } from '../types';
-import { Clock, Hammer, Shield, Info, ArrowLeft, Package } from 'lucide-react';
+import { Clock, Hammer, Shield, Info, ArrowLeft, Package, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ContactForm } from './ContactForm';
 
 interface ProductDetailProps {
   product: Product;
@@ -8,7 +10,15 @@ interface ProductDetailProps {
 }
 
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
-  const leadTimeMin = (product.print_time_min + product.post_processing_time_min) * 1.1; // 10% buffer as suggested
+  const [quantity, setQuantity] = useState(1);
+  const [showOrderForm, setShowOrderForm] = useState(false);
+
+  // Lead time calculation: (Print Time * Quantity + Post Processing) * 1.1 (buffer)
+  // Plus fixed overhead for machine setup (e.g., 60 mins)
+  const setupTime = 60; 
+  const totalPrintTime = product.print_time_min * quantity;
+  const leadTimeMin = (totalPrintTime + product.post_processing_time_min + setupTime) * 1.1;
+  
   const days = Math.floor(leadTimeMin / (24 * 60));
   const remainingHours = Math.floor((leadTimeMin % (24 * 60)) / 60);
 
@@ -16,96 +26,170 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
     ? `${days}d ${remainingHours}h` 
     : `${remainingHours}h`;
 
-  return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white p-6 md:p-12 animate-in fade-in duration-500">
-      <button 
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-[#FF5722] mb-8 transition-colors uppercase text-sm font-bold tracking-widest"
-      >
-        <ArrowLeft size={18} />
-        Back to Workshop
-      </button>
+  const totalPrice = product.price * quantity;
 
-      <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12">
+      <motion.button 
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-400 hover:text-[#FF5722] mb-8 transition-colors uppercase text-sm font-bold tracking-widest group"
+      >
+        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+        Back to Workshop
+      </motion.button>
+
+      <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
         {/* Left: Image Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-lg overflow-hidden relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-2xl overflow-hidden relative group">
             <img 
               src={product.images[0]} 
               alt={product.name}
-              className="w-full h-full object-cover grayscale-[20%]"
+              className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
             />
-            <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md border border-[#FF5722]/30 px-4 py-2 rounded flex items-center gap-3">
-              <Package size={20} className="text-[#FF5722]" />
+            <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-xl border border-[#FF5722]/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-2xl">
+              <div className="p-2 bg-[#FF5722]/20 rounded-lg">
+                <Package size={20} className="text-[#FF5722]" />
+              </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Ready to Print</p>
+                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Material</p>
                 <p className="text-sm font-black tracking-tight">{product.materials.join(' / ')}</p>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
-            {/* Mock thumbnails */}
-            {[1, 2, 3].map((_, i) => (
-              <div key={i} className="aspect-square bg-[#1A1A1A] border border-[#333] rounded cursor-pointer hover:border-[#FF5722] transition-colors overflow-hidden opacity-50 hover:opacity-100">
-                 <img src={product.images[0]} className="w-full h-full object-cover" />
+            {product.images.map((img, i) => (
+              <div key={i} className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-xl cursor-pointer hover:border-[#FF5722] transition-colors overflow-hidden opacity-50 hover:opacity-100">
+                 <img src={img} className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Right: Product Info */}
-        <div className="flex flex-col">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col"
+        >
           <div className="mb-8">
-            <h1 className="text-5xl font-black uppercase tracking-tighter mb-4 leading-none">
+            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none italic">
               {product.name}
             </h1>
-            <p className="text-2xl text-[#FF5722] font-mono font-bold">${product.price}.00</p>
+            <div className="flex items-center gap-4">
+              <p className="text-3xl text-[#FF5722] font-mono font-bold">${product.price}.00</p>
+              <span className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                In Stock & Ready
+              </span>
+            </div>
           </div>
 
-          <div className="space-y-6 flex-grow">
+          <div className="space-y-8 flex-grow">
             <div>
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                <Info size={14} /> Description
+              <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                <Info size={14} className="text-[#FF5722]" /> Description
               </h3>
-              <p className="text-gray-300 leading-relaxed font-light italic">
+              <p className="text-gray-300 leading-relaxed font-light text-lg italic border-l-2 border-[#222] pl-6">
                 "{product.description}"
               </p>
             </div>
 
-            {/* Production Stats Box */}
-            <div className="bg-[#111] border-l-4 border-[#FF5722] p-6 space-y-4">
-              <div className="flex justify-between items-center border-b border-[#222] pb-3">
-                <div className="flex items-center gap-3">
-                  <Clock size={20} className="text-[#FF5722]" />
-                  <span className="text-sm uppercase font-bold tracking-tight">Est. Production Time</span>
+            {/* Quantity Selector */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                Quantity
+              </h3>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center bg-[#111] border border-[#333] rounded-xl p-1">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-12 h-12 flex items-center justify-center hover:bg-[#222] rounded-lg transition-colors text-gray-400 hover:text-white"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <span className="w-16 text-center font-mono text-2xl font-bold">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-12 h-12 flex items-center justify-center hover:bg-[#222] rounded-lg transition-colors text-gray-400 hover:text-white"
+                  >
+                    <Plus size={20} />
+                  </button>
                 </div>
-                <span className="font-mono text-xl">{Math.floor(product.print_time_min / 60)}h {product.print_time_min % 60}m</span>
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Price</p>
+                  <p className="text-2xl font-mono font-black text-white">${totalPrice}.00</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Production Stats Box */}
+            <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-6 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF5722]/5 blur-3xl group-hover:bg-[#FF5722]/10 transition-colors" />
+              
+              <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-white/5 rounded-lg"><Clock size={18} className="text-gray-400" /></div>
+                  <span className="text-xs uppercase font-bold tracking-widest text-gray-400">Print Duration</span>
+                </div>
+                <span className="font-mono text-lg">{Math.floor(totalPrintTime / 60)}h {totalPrintTime % 60}m</span>
               </div>
 
-              <div className="flex justify-between items-center border-b border-[#222] pb-3">
-                <div className="flex items-center gap-3">
-                  <Hammer size={20} className="text-[#FF5722]" />
-                  <span className="text-sm uppercase font-bold tracking-tight">Post-Processing</span>
+              <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-white/5 rounded-lg"><Hammer size={18} className="text-gray-400" /></div>
+                  <span className="text-xs uppercase font-bold tracking-widest text-gray-400">Post-Processing</span>
                 </div>
-                <span className="font-mono text-xl">{product.post_processing_time_min}m</span>
+                <span className="font-mono text-lg">{product.post_processing_time_min}m</span>
               </div>
 
               <div className="flex justify-between items-center pt-2">
-                <div className="flex items-center gap-3">
-                  <Shield size={20} className="text-[#FF5722]" />
-                  <span className="text-sm uppercase font-black tracking-widest text-[#FF5722]">Est. Lead Time</span>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-[#FF5722]/10 rounded-xl"><Shield size={24} className="text-[#FF5722]" /></div>
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-[0.2em] text-[#FF5722] block mb-1">Guaranteed Delivery Buffer</span>
+                    <span className="text-xs text-gray-500 uppercase font-bold">Estimated Lead Time</span>
+                  </div>
                 </div>
-                <span className="text-3xl font-black tracking-tighter">{leadTimeDisplay}</span>
+                <motion.span 
+                  key={leadTimeDisplay}
+                  initial={{ scale: 1.1, color: '#FF5722' }}
+                  animate={{ scale: 1, color: '#FFFFFF' }}
+                  className="text-4xl font-black tracking-tighter"
+                >
+                  {leadTimeDisplay}
+                </motion.span>
               </div>
-              <p className="text-[10px] text-gray-500 uppercase text-right">* Includes machine queuing and cooling buffer</p>
             </div>
           </div>
 
-          <button className="mt-8 w-full bg-[#FF5722] hover:bg-[#E64A19] text-black font-black py-4 uppercase tracking-[0.2em] transition-all transform active:scale-[0.98] shadow-[0_0_20px_rgba(255,87,34,0.3)]">
-            Initialize Order
+          <button 
+            onClick={() => setShowOrderForm(true)}
+            className="mt-12 group relative w-full overflow-hidden rounded-2xl bg-[#FF5722] p-5 font-black uppercase tracking-[0.3em] text-black transition-all hover:bg-[#E64A19] active:scale-[0.98] shadow-[0_20px_40px_rgba(255,87,34,0.2)]"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              Order Now <ShoppingCart size={20} />
+            </span>
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
           </button>
-        </div>
+        </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showOrderForm && (
+          <ContactForm 
+            productName={product.name} 
+            price={totalPrice}
+            onClose={() => setShowOrderForm(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
