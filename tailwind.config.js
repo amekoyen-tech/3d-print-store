@@ -15,6 +15,9 @@ export default {
         heat: '#FF5722',
         steel: '#2196F3',
       },
+      animation: {
+        'spin-slow': 'spin 8s linear infinite',
+      }
     },
   },
   plugins: [],

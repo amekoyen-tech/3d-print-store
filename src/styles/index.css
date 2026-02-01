@@ -2,32 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --matte-black: #121212;
-  --carbon-gray: #1E1E1E;
-  --heat-orange: #FF5722;
-  --steel-blue: #2196F3;
-  --chalk-white: #F5F5F5;
+@layer base {
+  body {
+    @apply bg-[#0A0A0A] text-white;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-black tracking-tighter uppercase;
+  }
 }
 
-body {
-  background-color: var(--matte-black);
-  color: var(--chalk-white);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
-.maker-card {
-  background: var(--carbon-gray);
+/* Custom Industrial Accents */
+.industrial-grid {
+  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.industrial-grid-dots {
+  background-image: radial-gradient(rgba(255, 87, 34, 0.15) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.glass-card {
+  background: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.maker-card:hover {
-  border-color: var(--heat-orange);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(255, 87, 34, 0.2);
+.text-orange {
+  color: #FF5722;
 }
 
-.stats-font {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+.bg-orange {
+  background-color: #FF5722;
+}
+
+.border-orange {
+  border-color: #FF5722;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }

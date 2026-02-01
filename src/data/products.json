@@ -1,0 +1,35 @@
+[
+  {
+    "id": "p1",
+    "name": "工業風耳機架",
+    "materials": ["PLA+", "PETG"],
+    "weight_g": 150,
+    "print_time_min": 480,
+    "post_processing_time_min": 30,
+    "price": 750,
+    "images": ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=800&auto=format&fit=crop"],
+    "description": "堅固且極簡的耳機支架，專為穩定性與現代工業感設計。底部採用碳纖維紋理設計。"
+  },
+  {
+    "id": "p2",
+    "name": "隱形 Switch 底座外殼",
+    "materials": ["ABS", "ASA"],
+    "weight_g": 85,
+    "print_time_min": 320,
+    "post_processing_time_min": 60,
+    "price": 1350,
+    "images": ["https://images.unsplash.com/photo-1612015948912-4292182281a8?q=80&w=800&auto=format&fit=crop"],
+    "description": "針對 Nintendo Switch 底座開發的高性能替換外殼。耐熱且具備 UV 穩定性，適合長期使用。"
+  },
+  {
+    "id": "p3",
+    "name": "精密機械齒輪組",
+    "materials": ["Nylon", "Carbon Fiber PETG"],
+    "weight_g": 45,
+    "print_time_min": 180,
+    "post_processing_time_min": 45,
+    "price": 1050,
+    "images": ["https://images.unsplash.com/photo-1504198266304-7a1a1cfda33e?q=80&w=800&auto=format&fit=crop"],
+    "description": "自研工程齒輪組，具備 0.1mm 層高精度。非常適合高扭力應用與機械原型開發。"
+  }
+]
