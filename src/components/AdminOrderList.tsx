@@ -62,8 +62,8 @@ const OrderCard: React.FC<{
   const [estDate, setEstDate] = useState('');
   
   // Convert timestamp to readable date if needed
-  // order.createdAt is Firestore Timestamp usually
-  const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString() : 'Unknown Date';
+  const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString() : 
+                 (order.createdAt instanceof Date ? order.createdAt.toLocaleString() : 'Unknown Date');
 
   const handleAccept = () => {
     onUpdateStatus(order.id, 'accepted', { estimatedCompletionDate: estDate, adminNotes: actionNote });
@@ -77,6 +77,8 @@ const OrderCard: React.FC<{
     onUpdateStatus(order.id, 'completed', { adminNotes: actionNote });
   };
 
+  const status = order.status || 'pending';
+
   return (
     <motion.div 
       layout
@@ -87,20 +89,20 @@ const OrderCard: React.FC<{
         className="p-6 cursor-pointer flex items-center justify-between gap-6"
       >
         <div className="flex items-center gap-6">
-           <div className={`w-3 h-3 rounded-full ${order.status === 'pending' ? 'bg-yellow-500 animate-pulse' : order.status === 'completed' ? 'bg-green-500' : 'bg-gray-500'}`} />
+           <div className={`w-3 h-3 rounded-full ${status === 'pending' ? 'bg-yellow-500 animate-pulse' : status === 'completed' ? 'bg-green-500' : 'bg-gray-500'}`} />
            <div>
-              <h3 className="font-bold text-lg">{order.customer.name}</h3>
+              <h3 className="font-bold text-lg">{order.customer?.name || '無姓名 (No Name)'}</h3>
               <p className="text-xs text-gray-500 font-mono">{dateStr}</p>
            </div>
         </div>
         
         <div className="flex items-center gap-6">
-           <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border ${statusColors[order.status]}`}>
-              {statusLabels[order.status]}
+           <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border ${statusColors[status] || statusColors.pending}`}>
+              {statusLabels[status] || statusLabels.pending}
            </div>
            <div className="text-right">
-              <p className="text-sm text-gray-400 font-mono">{order.items.length} Items</p>
-              <p className="text-lg font-bold text-[#FF5722] font-mono">${order.totalPrice}</p>
+              <p className="text-sm text-gray-400 font-mono">{(order.items || []).length} Items</p>
+              <p className="text-lg font-bold text-[#FF5722] font-mono">${order.totalPrice || 0}</p>
            </div>
            {expanded ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
         </div>
@@ -120,16 +122,16 @@ const OrderCard: React.FC<{
                   <div>
                     <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">客戶資訊 (Customer)</h4>
                     <div className="bg-[#050505] p-4 rounded-xl border border-white/5 space-y-2 font-mono text-sm">
-                       <p><span className="text-gray-500">Name:</span> {order.customer.name}</p>
-                       <p><span className="text-gray-500">Phone:</span> {order.customer.phone}</p>
-                       <p><span className="text-gray-500">Note:</span> <span className="text-white italic">{order.customer.notes || '-'}</span></p>
+                       <p><span className="text-gray-500">Name:</span> {order.customer?.name || '-'}</p>
+                       <p><span className="text-gray-500">Phone:</span> {order.customer?.phone || '-'}</p>
+                       <p><span className="text-gray-500">Note:</span> <span className="text-white italic">{order.customer?.notes || '-'}</span></p>
                     </div>
                   </div>
 
                   <div>
                     <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">訂購項目 (Items)</h4>
                     <div className="space-y-3">
-                       {order.items.map((item, i) => (
+                       {(order.items || []).map((item, i) => (
                          <div key={i} className="flex gap-4 bg-[#050505] p-3 rounded-xl border border-white/5 items-center">
                             <div className="w-12 h-12 bg-[#222] rounded flex-shrink-0 overflow-hidden">
                                {item.image && <img src={item.image} className="w-full h-full object-cover" alt="" />}
