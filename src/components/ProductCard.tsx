@@ -26,12 +26,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
       <div className="absolute inset-0 bg-gradient-to-br from-[#FF5722]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       {/* Product Image */}
-      <div className="relative h-64 overflow-hidden">
-        <motion.img 
-          src={product.images[0]} 
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+      <div className="relative h-64 overflow-hidden bg-white/5">
+        {product.images?.[0] ? (
+          <motion.img 
+            src={product.images[0]} 
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-700">
+            <Box size={40} className="opacity-20" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
         <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
           單位售價: <span className="text-[#FF5722] ml-1">${product.price}</span>

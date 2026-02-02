@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import AdminProductForm from '../components/AdminProductForm';
 import AdminProductList from '../components/AdminProductList';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import AdminOrderList from '../components/AdminOrderList';
+import { ArrowLeft, ShieldCheck, LayoutList, Archive } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
   const { products, loading, error, addProduct, deleteProduct } = useProducts();
+  const [activeTab, setActiveTab] = useState<'products' | 'orders'>('orders');
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FF5722] selection:text-black pb-20">
@@ -31,34 +33,55 @@ const AdminPage: React.FC = () => {
               </span>
             </h1>
           </div>
+          
+          <div className="flex bg-[#111] p-1 rounded-lg border border-white/10">
+            <button
+              onClick={() => setActiveTab('orders')}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'orders' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
+            >
+              <Archive size={14} /> 訂單 (Orders)
+            </button>
+            <button
+              onClick={() => setActiveTab('products')}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'products' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
+            >
+              <LayoutList size={14} /> 產品 (Products)
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-12 relative z-10">
-        {loading && (
-          <div className="text-center py-20 animate-pulse font-mono text-[#FF5722]">
-            載入系統數據中... (SYSTEM LOADING)
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 p-6 text-red-500 mb-8 font-mono">
-            錯誤: {error}
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div className="grid lg:grid-cols-12 gap-12">
-            <div className="lg:col-span-5 xl:col-span-4">
-              <div className="sticky top-24">
-                <AdminProductForm onSubmit={addProduct} />
+        {activeTab === 'products' ? (
+          <>
+            {loading && (
+              <div className="text-center py-20 animate-pulse font-mono text-[#FF5722]">
+                載入系統數據中... (SYSTEM LOADING)
               </div>
-            </div>
-            
-            <div className="lg:col-span-7 xl:col-span-8">
-              <AdminProductList products={products} onDelete={deleteProduct} />
-            </div>
-          </div>
+            )}
+
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 p-6 text-red-500 mb-8 font-mono">
+                錯誤: {error}
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div className="grid lg:grid-cols-12 gap-12">
+                <div className="lg:col-span-5 xl:col-span-4">
+                  <div className="sticky top-24">
+                    <AdminProductForm onSubmit={addProduct} />
+                  </div>
+                </div>
+                
+                <div className="lg:col-span-7 xl:col-span-8">
+                  <AdminProductList products={products} onDelete={deleteProduct} />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <AdminOrderList />
         )}
       </main>
     </div>

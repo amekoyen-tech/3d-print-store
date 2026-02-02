@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Product } from '../types';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../lib/firebase';
 
 interface AdminProductFormProps {
   onSubmit: (product: Omit<Product, 'id'>) => Promise<void>;
@@ -14,15 +16,29 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
     print_time_min: '',
     post_processing_time_min: '',
     price: '',
-    imageUrl: '',
     description: '',
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +46,13 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
     setLoading(true);
 
     try {
+      let imageUrl = '';
+      if (imageFile) {
+        const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      }
+
       const newProduct: Omit<Product, 'id'> = {
         name: formData.name,
         materials: formData.materials.split(',').map(s => s.trim()).filter(Boolean),
@@ -37,7 +60,7 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
         print_time_min: Number(formData.print_time_min),
         post_processing_time_min: Number(formData.post_processing_time_min),
         price: Number(formData.price),
-        images: [formData.imageUrl],
+        images: imageUrl ? [imageUrl] : [],
         description: formData.description,
       };
 
@@ -51,9 +74,12 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
         print_time_min: '',
         post_processing_time_min: '',
         price: '',
-        imageUrl: '',
         description: '',
       });
+      setImageFile(null);
+      setImagePreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      
       alert('產品已新增 (Product Added)');
     } catch (error) {
       console.error(error);
@@ -152,15 +178,34 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
         </div>
 
         <div className="md:col-span-2">
-          <label className={labelClass}>圖片連結 (Image URL)</label>
-          <input
-            name="imageUrl"
-            value={formData.imageUrl}
-            onChange={handleChange}
-            required
-            className={inputClass}
-            placeholder="https://..."
-          />
+          <label className={labelClass}>產品圖片 (Product Image) <span className="text-gray-500 lowercase">(選填 Optional)</span></label>
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="group relative w-full h-48 border-2 border-dashed border-white/10 hover:border-[#FF5722]/50 transition-colors cursor-pointer flex flex-col items-center justify-center bg-white/5 overflow-hidden"
+          >
+            {imagePreview ? (
+              <>
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Upload className="text-[#FF5722] mb-2" />
+                  <span className="text-xs font-bold uppercase tracking-widest">更換圖片 (Change)</span>
+                </div>
+              </>
+            ) : (
+              <div className="text-center">
+                <ImageIcon size={32} className="text-gray-600 mx-auto mb-2 group-hover:text-[#FF5722] transition-colors" />
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">點擊或拖放圖片上傳</p>
+                <p className="text-[10px] text-gray-600 mt-1 uppercase">JPG, PNG, WEBP (Max 5MB)</p>
+              </div>
+            )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/*"
+            />
+          </div>
         </div>
 
         <div className="md:col-span-2">
@@ -182,7 +227,12 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
         disabled={loading}
         className="mt-8 w-full bg-[#FF5722] hover:bg-[#FF5722]/90 text-white font-black uppercase tracking-[0.2em] py-4 px-8 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {loading ? '處理中...' : '提交產品 (SUBMIT)'}
+        {loading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            處理中 (PROCESSING)...
+          </>
+        ) : '提交產品 (SUBMIT)'}
       </button>
     </form>
   );

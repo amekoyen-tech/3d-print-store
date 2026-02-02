@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../types';
 import { Clock, Hammer, Shield, Info, ArrowLeft, Package, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ContactForm } from './ContactForm';
+import { useCart } from '../contexts/CartContext';
 
 interface ProductDetailProps {
   product: Product;
@@ -11,7 +11,7 @@ interface ProductDetailProps {
 
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
-  const [showOrderForm, setShowOrderForm] = useState(false);
+  const { addToCart } = useCart();
 
   // Lead time calculation
   const setupTime = 60; 
@@ -28,6 +28,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const totalPrice = product.price * quantity;
 
   const images = product.images || [];
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12">
@@ -177,26 +181,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
           </div>
 
           <button 
-            onClick={() => setShowOrderForm(true)}
+            onClick={handleAddToCart}
             className="mt-12 group relative w-full overflow-hidden rounded-2xl bg-[#FF5722] p-5 font-black uppercase tracking-[0.3em] text-black transition-all hover:bg-[#E64A19] active:scale-[0.98] shadow-[0_20px_40px_rgba(255,87,34,0.2)]"
           >
             <span className="relative z-10 flex items-center justify-center gap-3">
-              立即訂購 (ORDER NOW) <ShoppingCart size={20} />
+              加入購物車 (ADD TO CART) <ShoppingCart size={20} />
             </span>
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
           </button>
         </motion.div>
       </div>
-
-      <AnimatePresence>
-        {showOrderForm && (
-          <ContactForm 
-            productName={product.name} 
-            price={totalPrice}
-            onClose={() => setShowOrderForm(false)} 
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
