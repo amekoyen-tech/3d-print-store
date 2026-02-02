@@ -17,6 +17,8 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
     post_processing_time_min: '',
     price: '',
     description: '',
+    isCustomizable: false,
+    customizationFee: '',
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -25,8 +27,12 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+       setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+    } else {
+       setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,6 +68,8 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
         price: Number(formData.price),
         images: imageUrl ? [imageUrl] : [],
         description: formData.description,
+        isCustomizable: formData.isCustomizable,
+        customizationFee: formData.customizationFee ? Number(formData.customizationFee) : 0,
       };
 
       await onSubmit(newProduct);
@@ -75,6 +83,8 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
         post_processing_time_min: '',
         price: '',
         description: '',
+        isCustomizable: false,
+        customizationFee: '',
       });
       setImageFile(null);
       setImagePreview(null);
@@ -149,6 +159,36 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit }) => {
             className={inputClass}
             placeholder="0"
           />
+        </div>
+
+        <div className="flex flex-col gap-4 p-4 border border-white/10 bg-white/5">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isCustomizable"
+              name="isCustomizable"
+              checked={formData.isCustomizable}
+              onChange={handleChange}
+              className="w-5 h-5 accent-[#FF5722]"
+            />
+            <label htmlFor="isCustomizable" className="text-sm font-bold uppercase tracking-widest text-white cursor-pointer select-none">
+              可客製化 (Customizable)
+            </label>
+          </div>
+          
+          {formData.isCustomizable && (
+            <div>
+              <label className={labelClass}>客製化費用 (Fee)</label>
+              <input
+                name="customizationFee"
+                type="number"
+                value={formData.customizationFee}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="0"
+              />
+            </div>
+          )}
         </div>
 
         <div>

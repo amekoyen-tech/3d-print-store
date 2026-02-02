@@ -4,11 +4,12 @@ import { useProducts } from '../hooks/useProducts';
 import AdminProductForm from '../components/AdminProductForm';
 import AdminProductList from '../components/AdminProductList';
 import AdminOrderList from '../components/AdminOrderList';
-import { ArrowLeft, ShieldCheck, LayoutList, Archive } from 'lucide-react';
+import AdminColorManager from '../components/AdminColorManager';
+import { ArrowLeft, ShieldCheck, LayoutList, Archive, Palette } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
   const { products, loading, error, addProduct, deleteProduct } = useProducts();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'colors'>('orders');
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FF5722] selection:text-black pb-20">
@@ -34,18 +35,24 @@ const AdminPage: React.FC = () => {
             </h1>
           </div>
           
-          <div className="flex bg-[#111] p-1 rounded-lg border border-white/10">
+          <div className="flex bg-[#111] p-1 rounded-lg border border-white/10 overflow-x-auto">
             <button
               onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'orders' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'orders' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
             >
               <Archive size={14} /> 訂單 (Orders)
             </button>
             <button
               onClick={() => setActiveTab('products')}
-              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === 'products' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'products' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
             >
               <LayoutList size={14} /> 產品 (Products)
+            </button>
+            <button
+              onClick={() => setActiveTab('colors')}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'colors' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
+            >
+              <Palette size={14} /> 色彩 (Colors)
             </button>
           </div>
         </div>
@@ -80,8 +87,10 @@ const AdminPage: React.FC = () => {
               </div>
             )}
           </>
-        ) : (
+        ) : activeTab === 'orders' ? (
           <AdminOrderList />
+        ) : (
+          <AdminColorManager />
         )}
       </main>
     </div>

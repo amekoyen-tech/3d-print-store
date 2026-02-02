@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Product } from '../types';
-import { Clock, Hammer, Shield, Info, ArrowLeft, Package, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Product, ColorSwatch } from '../types';
+import { Clock, Hammer, Shield, Info, ArrowLeft, Package, Plus, Minus, ShoppingCart, Palette } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../contexts/CartContext';
+import { useColors } from '../hooks/useColors';
 
 interface ProductDetailProps {
   product: Product;
@@ -12,6 +13,8 @@ interface ProductDetailProps {
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const { colors } = useColors();
+  const [selectedColor, setSelectedColor] = useState<ColorSwatch | undefined>(undefined);
 
   // Lead time calculation
   const setupTime = 60; 
@@ -25,13 +28,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
     ? `${days}天 ${remainingHours}小時` 
     : `${remainingHours}小時`;
 
-  const totalPrice = product.price * quantity;
+  const basePrice = product.price;
+  const customFee = (selectedColor && product.customizationFee) ? product.customizationFee : 0;
+  const totalPrice = (basePrice + customFee) * quantity;
 
   const images = product.images || [];
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (product.isCustomizable && !selectedColor) {
+      alert("請選擇顏色 (Please select a color)");
+      return;
+    }
+    addToCart(product, quantity, selectedColor);
   };
+
+  const availableColors = colors.filter(c => c.inStock);
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12">
@@ -95,11 +106,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
               {product.name}
             </h1>
             <div className="flex items-center gap-4">
-              <p className="text-3xl text-[#FF5722] font-mono font-bold">${product.price}.00</p>
+              <p className="text-3xl text-[#FF5722] font-mono font-bold">${basePrice + customFee}.00</p>
               <span className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[10px] uppercase font-bold tracking-widest text-gray-400">
                 現貨供應 (In Stock)
               </span>
             </div>
+            {product.isCustomizable && product.customizationFee && product.customizationFee > 0 && (
+              <p className="text-xs text-gray-500 mt-2 font-mono">
+                * 含客製化費用 +${product.customizationFee}
+              </p>
+            )}
           </div>
 
           <div className="space-y-8 flex-grow">
@@ -111,6 +127,35 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 "{product.description}"
               </p>
             </div>
+
+            {/* Color Selection */}
+            {product.isCustomizable && (
+               <div>
+                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                    <Palette size={14} className="text-[#FF5722]" /> 選擇顏色 (Color Selection)
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                     {availableColors.map(color => (
+                        <button
+                          key={color.id}
+                          onClick={() => setSelectedColor(color)}
+                          className={`group relative p-1 rounded-full border-2 transition-all ${selectedColor?.id === color.id ? 'border-[#FF5722] scale-110' : 'border-transparent hover:border-white/20'}`}
+                        >
+                          <div 
+                            className="w-10 h-10 rounded-full shadow-inner"
+                            style={{ backgroundColor: color.hexCode }}
+                          />
+                          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10">
+                            {color.name}
+                          </span>
+                        </button>
+                     ))}
+                  </div>
+                  {!selectedColor && (
+                    <p className="text-red-500 text-xs mt-2 font-bold animate-pulse">請選擇顏色 (Please select a color)</p>
+                  )}
+               </div>
+            )}
 
             {/* Quantity Selector */}
             <div className="space-y-4">

@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, CartItem } from '../types';
+import { Product, CartItem, ColorSwatch } from '../types';
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, selectedColor?: ColorSwatch) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -36,22 +36,26 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = (product: Product, quantity: number, selectedColor?: ColorSwatch) => {
+    const finalPrice = product.price + (selectedColor ? (product.customizationFee || 0) : 0);
+    const uniqueId = product.id + (selectedColor ? `-${selectedColor.id}` : '');
+
     setItems(prev => {
-      const existing = prev.find(item => item.productId === product.id);
+      const existing = prev.find(item => item.productId === uniqueId);
       if (existing) {
         return prev.map(item => 
-          item.productId === product.id 
+          item.productId === uniqueId 
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
       return [...prev, {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
+        productId: uniqueId,
+        name: product.name + (selectedColor ? ` (${selectedColor.name})` : ''),
+        price: finalPrice,
         image: product.images[0],
-        quantity
+        quantity,
+        selectedColor
       }];
     });
     setIsCartOpen(true);
