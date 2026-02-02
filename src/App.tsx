@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
+import LoginPage from './pages/LoginPage';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { CartProvider, useCart } from './contexts/CartContext';
 import { CartDrawer } from './components/CartDrawer';
 import { ShoppingCart } from 'lucide-react';
@@ -11,7 +13,7 @@ const FloatingCartButton: React.FC = () => {
   const { totalItems, setIsCartOpen } = useCart();
   const location = useLocation();
 
-  if (location.pathname.startsWith('/admin')) return null;
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
 
   return (
     <motion.button
@@ -42,7 +44,15 @@ const AppContent: React.FC = () => {
     <>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route 
+          path="/admin" 
+          element={
+            <AdminProtectedRoute>
+              <AdminPage />
+            </AdminProtectedRoute>
+          } 
+        />
       </Routes>
       <CartDrawer />
       <FloatingCartButton />
