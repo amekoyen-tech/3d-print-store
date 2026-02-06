@@ -12,6 +12,7 @@ interface ProductDetailProps {
 
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addToCart } = useCart();
   const { colors } = useColors();
   const [selectedColor, setSelectedColor] = useState<ColorSwatch | 'default'>('default');
@@ -33,6 +34,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const totalPrice = (basePrice + customFee) * quantity;
 
   const images = product.images || [];
+  const validImageIndex = images.length > 0 ? Math.min(currentImageIndex, images.length - 1) : 0;
 
   const handleAddToCart = () => {
     addToCart(product, quantity, selectedColor);
@@ -54,21 +56,38 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
 
       <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
         {/* Left: Image Gallery */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
           <div className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-2xl overflow-hidden relative group">
-            {images[0] ? (
-              <img 
-                src={images[0]} 
-                alt={product.name}
-                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-700">NO IMAGE</div>
+            <AnimatePresence mode="wait">
+              {images[validImageIndex] ? (
+                <motion.img
+                  key={validImageIndex}
+                  src={images[validImageIndex]}
+                  alt={product.name}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-700">NO IMAGE</div>
+              )}
+            </AnimatePresence>
+
+            {/* Image Counter Badge */}
+            {images.length > 1 && (
+              <div className="absolute top-6 right-6 bg-black/80 backdrop-blur-xl border border-[#FF5722]/30 px-4 py-2 rounded-full shadow-2xl">
+                <p className="text-[10px] font-black text-[#FF5722] tracking-widest uppercase">
+                  {validImageIndex + 1} / {images.length}
+                </p>
+              </div>
             )}
+
             <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-xl border border-[#FF5722]/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-2xl">
               <div className="p-2 bg-[#FF5722]/20 rounded-lg">
                 <Package size={20} className="text-[#FF5722]" />
@@ -82,9 +101,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
           {images.length > 1 && (
             <div className="grid grid-cols-4 gap-4">
               {images.map((img, i) => (
-                <div key={i} className="aspect-square bg-[#1A1A1A] border border-[#333] rounded-xl cursor-pointer hover:border-[#FF5722] transition-colors overflow-hidden opacity-50 hover:opacity-100">
-                   <img src={img} className="w-full h-full object-cover" alt={`view ${i}`} />
-                </div>
+                <motion.div
+                  key={i}
+                  onClick={() => setCurrentImageIndex(i)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`aspect-square bg-[#1A1A1A] rounded-xl cursor-pointer transition-all overflow-hidden ${
+                    i === validImageIndex
+                      ? 'border-2 border-[#FF5722] opacity-100 ring-2 ring-[#FF5722]/30'
+                      : 'border border-[#333] opacity-50 hover:opacity-75 hover:border-[#FF5722]'
+                  }`}
+                >
+                  <img src={img} className="w-full h-full object-cover" alt={`view ${i}`} />
+                </motion.div>
               ))}
             </div>
           )}
