@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useOrders } from '../hooks/useOrders';
 import { Order, OrderStatus } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Loader2, Package, Clock, CheckCircle2, AlertCircle, Printer, Hammer, Truck } from 'lucide-react';
+import { Search, Loader2, Package, Clock, CheckCircle2, AlertCircle, Printer, Hammer, Truck, MessageCircle, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import OrderMessageBox from '../components/OrderMessageBox';
+import OrderModificationForm from '../components/OrderModificationForm';
 
 const statusSteps: { id: OrderStatus; label: string; icon: React.ReactNode }[] = [
   { id: 'pending', label: '待處理', icon: <Clock size={16} /> },
@@ -18,6 +20,9 @@ const TrackOrderPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searched, setSearched] = useState(false);
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
+  const [expandedMessages, setExpandedMessages] = useState<{ [key: string]: boolean }>({});
+  const [expandedModRequests, setExpandedModRequests] = useState<{ [key: string]: boolean }>({});
+  const [showModForm, setShowModForm] = useState<string | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,6 +195,121 @@ const TrackOrderPage: React.FC = () => {
                         </p>
                      </div>
                   )}
+
+                  {/* 留言和修改請求區域 */}
+                  <div className="border-t border-white/5 bg-white/[0.02]">
+                    {/* 留言區塊 */}
+                    <div className="p-6 md:p-8 border-b border-white/5">
+                      <button
+                        onClick={() => setExpandedMessages({ ...expandedMessages, [order.id]: !expandedMessages[order.id] })}
+                        className="w-full flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <MessageCircle size={20} className="text-[#FF5722]" />
+                          <h3 className="text-sm font-black uppercase tracking-widest">
+                            訂單留言 (Messages)
+                          </h3>
+                          {order.hasUnreadReplies && (
+                            <span className="px-2 py-0.5 bg-[#FF5722] text-black text-[10px] font-black rounded-full animate-pulse">
+                              有新回覆
+                            </span>
+                          )}
+                          {order.messages && order.messages.length > 0 && (
+                            <span className="text-xs text-gray-500">
+                              ({order.messages.length})
+                            </span>
+                          )}
+                        </div>
+                        <div className={`transition-transform ${expandedMessages[order.id] ? 'rotate-180' : ''}`}>
+                          ▼
+                        </div>
+                      </button>
+
+                      <AnimatePresence>
+                        {expandedMessages[order.id] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="mt-4 overflow-hidden"
+                          >
+                            <OrderMessageBox
+                              orderId={order.id}
+                              customerName={order.customer.name}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* 修改請求區塊 */}
+                    <div className="p-6 md:p-8">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <Settings size={20} className="text-[#2196F3]" />
+                          <h3 className="text-sm font-black uppercase tracking-widest">
+                            修改請求 (Modifications)
+                          </h3>
+                        </div>
+                        {order.status !== 'completed' && order.status !== 'rejected' && order.status !== 'cancelled' && (
+                          <button
+                            onClick={() => setShowModForm(order.id)}
+                            className="px-4 py-2 bg-[#2196F3] hover:bg-[#1976D2] text-white text-xs font-bold rounded-lg transition-colors uppercase tracking-widest"
+                          >
+                            申請修改
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 修改請求列表 */}
+                      {order.modificationRequests && order.modificationRequests.length > 0 ? (
+                        <div className="space-y-3">
+                          {order.modificationRequests.map((req) => (
+                            <div
+                              key={req.id}
+                              className={`p-4 rounded-xl border-2 ${
+                                req.status === 'pending'
+                                  ? 'border-[#FF9800] bg-[#FF9800]/5'
+                                  : req.status === 'approved'
+                                  ? 'border-green-500 bg-green-500/5'
+                                  : 'border-red-500 bg-red-500/5'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-bold text-gray-400 uppercase">
+                                  {req.requestType === 'change_color' && '變更顏色'}
+                                  {req.requestType === 'change_quantity' && '調整數量'}
+                                  {req.requestType === 'change_address' && '修改地址'}
+                                  {req.requestType === 'other' && '其他'}
+                                </span>
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                                  req.status === 'pending'
+                                    ? 'bg-[#FF9800] text-black'
+                                    : req.status === 'approved'
+                                    ? 'bg-green-500 text-black'
+                                    : 'bg-red-500 text-white'
+                                }`}>
+                                  {req.status === 'pending' && '待處理'}
+                                  {req.status === 'approved' && '已批准'}
+                                  {req.status === 'rejected' && '已拒絕'}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-300 mb-2">{req.description}</p>
+                              {req.adminResponse && (
+                                <div className="mt-3 pt-3 border-t border-white/10">
+                                  <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">商家回應:</p>
+                                  <p className="text-xs text-gray-400">{req.adminResponse}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-600 text-center py-4">尚無修改請求</p>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               ))
             ) : (
@@ -206,6 +326,20 @@ const TrackOrderPage: React.FC = () => {
            </div>
         )}
       </main>
+
+      {/* 修改請求表單模態框 */}
+      <AnimatePresence>
+        {showModForm && (
+          <OrderModificationForm
+            orderId={showModForm}
+            onClose={() => setShowModForm(null)}
+            onSuccess={() => {
+              // 可以在這裡添加成功提示
+              console.log('修改請求已提交');
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

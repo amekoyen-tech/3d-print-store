@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Order, OrderStatus, DeliveryMethod, PaymentMethod } from '../types';
 import { useOrders } from '../hooks/useOrders';
+import { useOrderMessages } from '../hooks/useOrderMessages';
+import { useModificationRequests } from '../hooks/useModificationRequests';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, CheckCircle2, XCircle, Calendar, ChevronDown, ChevronUp, Trash2, User, Truck, CreditCard } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, Calendar, ChevronDown, ChevronUp, Trash2, User, Truck, CreditCard, MessageCircle, Settings, ThumbsUp, ThumbsDown } from 'lucide-react';
+import OrderMessageBox from './OrderMessageBox';
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20',
@@ -135,7 +138,15 @@ const OrderCard: React.FC<{
         <div className="flex items-center gap-6">
            <div className={`w-3 h-3 rounded-full ${currentStatus === 'pending' ? 'bg-yellow-500 animate-pulse' : currentStatus === 'completed' ? 'bg-green-500' : 'bg-gray-500'}`} />
            <div>
-              <h3 className="font-bold text-lg">{order.customer?.name || '無姓名 (No Name)'}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-lg">{order.customer?.name || '無姓名 (No Name)'}</h3>
+                {order.hasUnreadMessages && (
+                  <span className="px-2 py-0.5 bg-[#FF5722] text-black text-[10px] font-black rounded-full flex items-center gap-1 animate-pulse">
+                    <MessageCircle size={10} />
+                    新留言
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-gray-500 font-mono">{dateStr}</p>
            </div>
         </div>
@@ -308,7 +319,7 @@ const OrderCard: React.FC<{
                     )}
 
                     <div className="pt-8 border-t border-white/5 flex justify-end">
-                       <button 
+                       <button
                          onClick={handleDelete}
                          className="flex items-center gap-2 text-red-500/50 hover:text-red-500 text-xs font-bold uppercase tracking-widest transition-colors"
                        >
@@ -316,11 +327,277 @@ const OrderCard: React.FC<{
                        </button>
                     </div>
                   </div>
+
+                  {/* 留言區塊 */}
+                  <div className="pt-6">
+                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <MessageCircle size={14} className="text-[#FF5722]" /> 訂單留言 (Messages)
+                    </h4>
+                    <div className="bg-[#1A1A1A] p-4 rounded-2xl border border-white/5">
+                      <AdminMessageSection orderId={order.id} />
+                    </div>
+                  </div>
+
+                  {/* 修改請求區塊 */}
+                  {order.modificationRequests && order.modificationRequests.length > 0 && (
+                    <div className="pt-6">
+                      <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <Settings size={14} className="text-[#2196F3]" /> 修改請求 (Mod Requests)
+                      </h4>
+                      <ModificationRequestsAdmin
+                        orderId={order.id}
+                        requests={order.modificationRequests}
+                      />
+                    </div>
+                  )}
                </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
+  );
+};
+
+// Admin 留言區組件
+const AdminMessageSection: React.FC<{ orderId: string }> = ({ orderId }) => {
+  const { messages, uploading, addMessage, markAsRead } = useOrderMessages(orderId);
+  const [newMessage, setNewMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (messages.length > 0) {
+      markAsRead('admin').catch(console.error);
+    }
+  }, [messages.length]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) {
+      setError('請輸入留言內容');
+      return;
+    }
+
+    try {
+      setError(null);
+      await addMessage(newMessage, 'admin', 'Alex Print Lab');
+      setNewMessage('');
+    } catch (err: any) {
+      setError(err.message || '發送失敗');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* 留言列表 */}
+      <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
+        {messages.length === 0 ? (
+          <p className="text-xs text-gray-600 text-center py-4">尚無留言</p>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`p-3 rounded-lg text-sm ${
+                msg.sender === 'customer'
+                  ? 'bg-white/5 border border-white/10'
+                  : 'bg-[#FF5722]/10 border border-[#FF5722]/20'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">
+                  {msg.senderName}
+                </span>
+                <span className="text-[9px] text-gray-600">
+                  {msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleString('zh-TW', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : ''}
+                </span>
+              </div>
+              <p className="text-gray-300 whitespace-pre-wrap">{msg.content}</p>
+              {msg.imageUrl && (
+                <img
+                  src={msg.imageUrl}
+                  alt="留言圖片"
+                  className="mt-2 max-h-32 rounded cursor-pointer"
+                  onClick={() => window.open(msg.imageUrl, '_blank')}
+                />
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 回覆表單 */}
+      <form onSubmit={handleSubmit} className="space-y-2">
+        {error && (
+          <div className="text-red-500 text-xs bg-red-500/10 border border-red-500/20 rounded p-2">
+            {error}
+          </div>
+        )}
+        <textarea
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="輸入回覆..."
+          rows={2}
+          maxLength={500}
+          disabled={uploading}
+          className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm resize-none focus:border-[#FF5722] outline-none text-white placeholder:text-gray-700 disabled:opacity-50"
+        />
+        <button
+          type="submit"
+          disabled={!newMessage.trim() || uploading}
+          className="w-full py-2 bg-[#FF5722] hover:bg-[#E64A19] text-black rounded-lg font-bold uppercase text-xs tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {uploading ? '發送中...' : '發送回覆'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+// 修改請求處理組件
+const ModificationRequestsAdmin: React.FC<{
+  orderId: string;
+  requests: Order['modificationRequests'];
+}> = ({ orderId, requests }) => {
+  const { approveRequest, rejectRequest } = useModificationRequests();
+  const [selectedReq, setSelectedReq] = useState<string | null>(null);
+  const [response, setResponse] = useState('');
+  const [processing, setProcessing] = useState(false);
+
+  const handleApprove = async (reqId: string) => {
+    if (!response.trim()) {
+      alert('請填寫回應內容');
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      await approveRequest(orderId, reqId, response, requests || []);
+      setSelectedReq(null);
+      setResponse('');
+    } catch (err) {
+      alert('操作失敗');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleReject = async (reqId: string) => {
+    if (!response.trim()) {
+      alert('請填寫拒絕理由');
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      await rejectRequest(orderId, reqId, response, requests || []);
+      setSelectedReq(null);
+      setResponse('');
+    } catch (err) {
+      alert('操作失敗');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {requests?.map((req) => (
+        <div
+          key={req.id}
+          className={`p-4 rounded-xl border-2 ${
+            req.status === 'pending'
+              ? 'border-[#FF9800] bg-[#FF9800]/5'
+              : req.status === 'approved'
+              ? 'border-green-500 bg-green-500/5'
+              : 'border-red-500 bg-red-500/5'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-gray-400 uppercase">
+              {req.requestType === 'change_color' && '變更顏色'}
+              {req.requestType === 'change_quantity' && '調整數量'}
+              {req.requestType === 'change_address' && '修改地址'}
+              {req.requestType === 'other' && '其他'}
+            </span>
+            <span
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                req.status === 'pending'
+                  ? 'bg-[#FF9800] text-black'
+                  : req.status === 'approved'
+                  ? 'bg-green-500 text-black'
+                  : 'bg-red-500 text-white'
+              }`}
+            >
+              {req.status === 'pending' && '待處理'}
+              {req.status === 'approved' && '已批准'}
+              {req.status === 'rejected' && '已拒絕'}
+            </span>
+          </div>
+
+          <p className="text-sm text-gray-300 mb-3">{req.description}</p>
+
+          {req.status === 'pending' && selectedReq !== req.id && (
+            <button
+              onClick={() => setSelectedReq(req.id)}
+              className="text-xs text-[#FF5722] hover:underline font-bold"
+            >
+              處理此請求 →
+            </button>
+          )}
+
+          {selectedReq === req.id && req.status === 'pending' && (
+            <div className="mt-3 pt-3 border-t border-white/10 space-y-3">
+              <textarea
+                value={response}
+                onChange={(e) => setResponse(e.target.value)}
+                placeholder="填寫回應或理由..."
+                rows={2}
+                className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm resize-none focus:border-[#FF5722] outline-none text-white placeholder:text-gray-700"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleApprove(req.id)}
+                  disabled={processing}
+                  className="flex-1 py-2 bg-green-500/10 text-green-500 border border-green-500/20 hover:bg-green-500/20 rounded-lg font-bold uppercase text-xs tracking-widest transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                >
+                  <ThumbsUp size={12} /> 批准
+                </button>
+                <button
+                  onClick={() => handleReject(req.id)}
+                  disabled={processing}
+                  className="flex-1 py-2 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 rounded-lg font-bold uppercase text-xs tracking-widest transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                >
+                  <ThumbsDown size={12} /> 拒絕
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedReq(null);
+                    setResponse('');
+                  }}
+                  disabled={processing}
+                  className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs text-gray-400 transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          )}
+
+          {req.adminResponse && (
+            <div className="mt-3 pt-3 border-t border-white/10">
+              <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">
+                回應:
+              </p>
+              <p className="text-xs text-gray-400">{req.adminResponse}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 };
