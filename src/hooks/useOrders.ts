@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { Order, OrderStatus } from '../types';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { Order, OrderStatus, Product } from '../types';
 
 export const useOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -47,5 +47,50 @@ export const useOrders = () => {
     await deleteDoc(doc(db, 'orders', id));
   };
 
-  return { orders, loading, error, updateOrderStatus, deleteOrder };
+  const calculateEstimatedCompletion = async () => {
+    try {
+      // Fetch products to get times
+      const productsSnap = await getDocs(collection(db, 'products'));
+      const productsMap = new Map<string, Product>();
+      productsSnap.docs.forEach(doc => {
+        productsMap.set(doc.id, { id: doc.id, ...doc.data() } as Product);
+      });
+
+      // Filter active orders (including the one we might be about to accept if it's already in the list with pending status)
+      // We consider all orders that are taking up machine time.
+      // Pending orders count? The instruction says "Fetches all orders with status NOT 'completed' or 'rejected'". 
+      // It implies pending orders are also in the queue conceptually or we are calculating the END of the queue.
+      // Assuming we want to know when the NEWEST item will be done if added to the end.
+      const activeOrders = orders.filter(o => 
+        o.status !== 'completed' && 
+        o.status !== 'rejected' && 
+        o.status !== 'cancelled'
+      );
+
+      let totalMinutes = 0;
+
+      activeOrders.forEach(order => {
+        order.items.forEach(item => {
+          const product = productsMap.get(item.productId);
+          if (product) {
+            const printTime = product.print_time_min || 0;
+            const postTime = product.post_processing_time_min || 0;
+            totalMinutes += (printTime + postTime) * item.quantity;
+          }
+        });
+      });
+
+      // Add 10% buffer
+      totalMinutes = Math.ceil(totalMinutes * 1.1);
+
+      const completionDate = new Date(Date.now() + totalMinutes * 60000);
+      return completionDate;
+
+    } catch (err) {
+      console.error("Error calculating estimation:", err);
+      return new Date(); // Return now as fallback
+    }
+  };
+
+  return { orders, loading, error, updateOrderStatus, deleteOrder, calculateEstimatedCompletion };
 };

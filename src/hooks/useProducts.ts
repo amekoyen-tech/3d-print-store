@@ -47,5 +47,14 @@ export const useProducts = () => {
     }
   };
 
-  return { products, loading, error, addProduct, deleteProduct };
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    try {
+      await updateDoc(doc(db, 'products', id), updates);
+    } catch (err) {
+      console.error("Error updating product:", err);
+      throw err;
+    }
+  };
+
+  return { products, loading, error, addProduct, deleteProduct, updateProduct };
 };

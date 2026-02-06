@@ -5,11 +5,22 @@ import AdminProductForm from '../components/AdminProductForm';
 import AdminProductList from '../components/AdminProductList';
 import AdminOrderList from '../components/AdminOrderList';
 import AdminColorManager from '../components/AdminColorManager';
+import { Product } from '../types';
 import { ArrowLeft, ShieldCheck, LayoutList, Archive, Palette } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
-  const { products, loading, error, addProduct, deleteProduct } = useProducts();
+  const { products, loading, error, addProduct, deleteProduct, updateProduct } = useProducts();
   const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'colors'>('orders');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const handleFormSubmit = async (productData: Omit<Product, 'id'>) => {
+    if (editingProduct) {
+      await updateProduct(editingProduct.id, productData);
+      setEditingProduct(null);
+    } else {
+      await addProduct(productData);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FF5722] selection:text-black pb-20">
@@ -27,9 +38,9 @@ const AdminPage: React.FC = () => {
               <ArrowLeft size={20} />
             </Link>
             <div className="h-6 w-[1px] bg-white/10" />
-            <h1 className="font-black text-xl tracking-tight flex items-center gap-3">
-              ALEX<span className="text-[#FF5722]">.</span>ADMIN
-              <span className="px-2 py-0.5 bg-[#FF5722]/10 border border-[#FF5722]/20 text-[#FF5722] text-[10px] tracking-widest rounded-full flex items-center gap-1">
+            <h1 className="font-black text-lg md:text-xl tracking-tight flex items-center gap-3">
+              D*3<span className="text-[#FF5722]">.</span>管理後台
+              <span className="hidden sm:flex px-2 py-0.5 bg-[#FF5722]/10 border border-[#FF5722]/20 text-[#FF5722] text-[10px] tracking-widest rounded-full items-center gap-1">
                 <ShieldCheck size={10} /> ACCESS GRANTED
               </span>
             </h1>
@@ -77,12 +88,23 @@ const AdminPage: React.FC = () => {
               <div className="grid lg:grid-cols-12 gap-12">
                 <div className="lg:col-span-5 xl:col-span-4">
                   <div className="sticky top-24">
-                    <AdminProductForm onSubmit={addProduct} />
+                    <AdminProductForm 
+                      onSubmit={handleFormSubmit} 
+                      initialData={editingProduct}
+                      onCancel={() => setEditingProduct(null)}
+                    />
                   </div>
                 </div>
                 
                 <div className="lg:col-span-7 xl:col-span-8">
-                  <AdminProductList products={products} onDelete={deleteProduct} />
+                  <AdminProductList 
+                    products={products} 
+                    onDelete={deleteProduct} 
+                    onEdit={(p) => {
+                      setEditingProduct(p);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  />
                 </div>
               </div>
             )}

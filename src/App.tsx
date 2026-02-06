@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
+import TrackOrderPage from './pages/TrackOrderPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { CartProvider, useCart } from './contexts/CartContext';
 import { CartDrawer } from './components/CartDrawer';
@@ -40,10 +41,18 @@ const FloatingCartButton: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
+  const isEmulator = import.meta.env.VITE_USE_EMULATORS === 'true';
+
   return (
     <>
+      {isEmulator && (
+          <div className="fixed top-0 left-0 right-0 z-[9999] bg-red-600 text-white text-[10px] font-black py-1 px-4 text-center uppercase tracking-[0.3em] shadow-lg animate-pulse">
+              ⚠️ SIMULATION MODE: Connected to Local Emulator Suite (Safe for Testing)
+          </div>
+      )}
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/track" element={<TrackOrderPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route 
           path="/admin" 

@@ -19,6 +19,7 @@ export interface ColorSwatch {
   hexCode: string;
   material: string;
   inStock: boolean;
+  imageUrl?: string;
 }
 
 export interface CartItem {
@@ -27,18 +28,26 @@ export interface CartItem {
   price: number;
   quantity: number;
   image?: string;
-  selectedColor?: ColorSwatch;
+  selectedColor?: ColorSwatch | 'default';
+  status?: 'pending' | 'printing' | 'completed';
 }
 
-export type OrderStatus = 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'accepted' | 'printing' | 'post_processing' | 'rejected' | 'completed' | 'cancelled';
+export type DeliveryMethod = 'in_person' | 'mailing';
+export type PaymentMethod = 'bank_transfer' | 'line_pay' | 'cash';
 
 export interface Order {
   id: string;
   customer: {
     name: string;
     phone: string;
+    contactMethod: string; // email, line, or ig
+    address?: string;
     notes?: string;
   };
+  deliveryMethod: DeliveryMethod;
+  paymentMethod: PaymentMethod;
+  shippingFee: number;
   items: CartItem[];
   totalPrice: number;
   status: OrderStatus;
@@ -46,4 +55,9 @@ export interface Order {
   adminNotes?: string;
   createdAt: any; // Firestore Timestamp or Date
   rejectionReason?: string;
+}
+
+export interface StoreSettings {
+  freeShippingThreshold: number;
+  baseShippingFee: number;
 }

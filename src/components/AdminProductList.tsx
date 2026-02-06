@@ -1,16 +1,25 @@
 import React from 'react';
 import { Product } from '../types';
-import { Trash2, AlertTriangle, Box } from 'lucide-react';
+import { Trash2, AlertTriangle, Box, Edit2 } from 'lucide-react';
 
 interface AdminProductListProps {
   products: Product[];
   onDelete: (id: string) => Promise<void>;
+  onEdit: (product: Product) => void;
 }
 
-const AdminProductList: React.FC<AdminProductListProps> = ({ products, onDelete }) => {
-  const handleDelete = async (id: string) => {
+const AdminProductList: React.FC<AdminProductListProps> = ({ products, onDelete, onEdit }) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (window.confirm('確定刪除此產品？此動作無法復原。\n(Are you sure you want to delete this product?)')) {
-      await onDelete(id);
+      try {
+        await onDelete(id);
+      } catch (err: any) {
+        console.error('Delete error:', err);
+        alert('刪除失敗: ' + (err.message || '未知錯誤'));
+      }
     }
   };
 
@@ -64,13 +73,23 @@ const AdminProductList: React.FC<AdminProductListProps> = ({ products, onDelete 
               </div>
             </div>
 
-            <button
-              onClick={() => handleDelete(product.id)}
-              className="p-3 text-gray-500 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/50 transition-all group-hover:opacity-100"
-              title="刪除 (Delete)"
-            >
-              <Trash2 size={18} />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit(product)}
+                className="p-3 text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/50 transition-all"
+                title="編輯 (Edit)"
+              >
+                <Edit2 size={18} />
+              </button>
+
+              <button
+                onClick={(e) => handleDelete(e, product.id)}
+                className="p-3 text-gray-500 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/50 transition-all"
+                title="刪除 (Delete)"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -14,7 +14,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const { colors } = useColors();
-  const [selectedColor, setSelectedColor] = useState<ColorSwatch | undefined>(undefined);
+  const [selectedColor, setSelectedColor] = useState<ColorSwatch | 'default'>('default');
 
   // Lead time calculation
   const setupTime = 60; 
@@ -29,16 +29,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
     : `${remainingHours}小時`;
 
   const basePrice = product.price;
-  const customFee = (selectedColor && product.customizationFee) ? product.customizationFee : 0;
+  const customFee = (selectedColor !== 'default' && product.customizationFee) ? product.customizationFee : 0;
   const totalPrice = (basePrice + customFee) * quantity;
 
   const images = product.images || [];
 
   const handleAddToCart = () => {
-    if (product.isCustomizable && !selectedColor) {
-      alert("請選擇顏色 (Please select a color)");
-      return;
-    }
     addToCart(product, quantity, selectedColor);
   };
 
@@ -101,29 +97,29 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
           transition={{ delay: 0.2 }}
           className="flex flex-col"
         >
-          <div className="mb-8">
-            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none italic">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none italic">
               {product.name}
             </h1>
-            <div className="flex items-center gap-4">
-              <p className="text-3xl text-[#FF5722] font-mono font-bold">${basePrice + customFee}.00</p>
+            <div className="flex items-center gap-4 flex-wrap">
+              <p className="text-2xl sm:text-3xl text-[#FF5722] font-mono font-bold">${basePrice + customFee}.00</p>
               <span className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[10px] uppercase font-bold tracking-widest text-gray-400">
                 現貨供應 (In Stock)
               </span>
             </div>
-            {product.isCustomizable && product.customizationFee && product.customizationFee > 0 && (
-              <p className="text-xs text-gray-500 mt-2 font-mono">
+            {product.isCustomizable && selectedColor !== 'default' && product.customizationFee && product.customizationFee > 0 && (
+              <p className="text-[10px] text-gray-500 mt-2 font-mono uppercase tracking-widest">
                 * 含客製化費用 +${product.customizationFee}
               </p>
             )}
           </div>
 
-          <div className="space-y-8 flex-grow">
+          <div className="space-y-6 sm:space-y-8 flex-grow">
             <div>
-              <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                <Info size={14} className="text-[#FF5722]" /> 產品描述 (Description)
+              <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 sm:mb-4 flex items-center gap-2">
+                <Info size={12} className="text-[#FF5722]" /> 產品描述 (Description)
               </h3>
-              <p className="text-gray-300 leading-relaxed font-light text-lg italic border-l-2 border-[#222] pl-6">
+              <p className="text-gray-300 leading-relaxed font-light text-base sm:text-lg italic border-l-2 border-[#222] pl-4 sm:pl-6">
                 "{product.description}"
               </p>
             </div>
@@ -135,25 +131,39 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                     <Palette size={14} className="text-[#FF5722]" /> 選擇顏色 (Color Selection)
                   </h3>
                   <div className="flex flex-wrap gap-3">
+                     {/* Default Option */}
+                     <button
+                        onClick={() => setSelectedColor('default')}
+                        className={`group relative p-1 rounded-full border-2 transition-all ${selectedColor === 'default' ? 'border-[#FF5722] scale-110' : 'border-white/10 hover:border-white/30'}`}
+                     >
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center border border-white/10">
+                           <span className="text-[10px] font-black">預設</span>
+                        </div>
+                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
+                          隨機/預設 (免客製費)
+                        </span>
+                     </button>
+
                      {availableColors.map(color => (
                         <button
                           key={color.id}
                           onClick={() => setSelectedColor(color)}
-                          className={`group relative p-1 rounded-full border-2 transition-all ${selectedColor?.id === color.id ? 'border-[#FF5722] scale-110' : 'border-transparent hover:border-white/20'}`}
+                          className={`group relative p-1 rounded-full border-2 transition-all ${selectedColor !== 'default' && selectedColor.id === color.id ? 'border-[#FF5722] scale-110' : 'border-white/20 hover:border-white/40'}`}
                         >
                           <div 
-                            className="w-10 h-10 rounded-full shadow-inner"
+                            className="w-10 h-10 rounded-full shadow-inner overflow-hidden border border-white/10"
                             style={{ backgroundColor: color.hexCode }}
-                          />
-                          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10">
-                            {color.name}
+                          >
+                            {color.imageUrl && (
+                              <img src={color.imageUrl} alt="" className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
+                            {color.name} ({color.material})
                           </span>
                         </button>
                      ))}
                   </div>
-                  {!selectedColor && (
-                    <p className="text-red-500 text-xs mt-2 font-bold animate-pulse">請選擇顏色 (Please select a color)</p>
-                  )}
                </div>
             )}
 

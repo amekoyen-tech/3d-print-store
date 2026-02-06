@@ -3,7 +3,7 @@ import { Product, CartItem, ColorSwatch } from '../types';
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity: number, selectedColor?: ColorSwatch) => void;
+  addToCart: (product: Product, quantity: number, selectedColor?: ColorSwatch | 'default') => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -36,9 +36,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, quantity: number, selectedColor?: ColorSwatch) => {
-    const finalPrice = product.price + (selectedColor ? (product.customizationFee || 0) : 0);
-    const uniqueId = product.id + (selectedColor ? `-${selectedColor.id}` : '');
+  const addToCart = (product: Product, quantity: number, selectedColor?: ColorSwatch | 'default') => {
+    const isCustom = selectedColor && selectedColor !== 'default';
+    const finalPrice = product.price + (isCustom ? (product.customizationFee || 0) : 0);
+    const colorId = selectedColor === 'default' ? 'default' : (selectedColor?.id || 'none');
+    const uniqueId = `${product.id}-${colorId}`;
 
     setItems(prev => {
       const existing = prev.find(item => item.productId === uniqueId);
@@ -51,7 +53,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       return [...prev, {
         productId: uniqueId,
-        name: product.name + (selectedColor ? ` (${selectedColor.name})` : ''),
+        name: product.name,
         price: finalPrice,
         image: product.images[0],
         quantity,

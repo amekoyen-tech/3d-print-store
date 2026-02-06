@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { CartItem } from '../types';
+import { CartItem, DeliveryMethod, PaymentMethod } from '../types';
 
 export interface CustomerData {
   name: string;
   phone: string;
+  contactMethod: string;
+  address?: string;
   notes?: string;
 }
 
@@ -14,7 +16,14 @@ export const useOrderSubmission = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const submitOrder = async (customer: CustomerData, items: CartItem[], totalPrice: number) => {
+  const submitOrder = async (
+    customer: CustomerData, 
+    items: CartItem[], 
+    totalPrice: number,
+    deliveryMethod: DeliveryMethod,
+    paymentMethod: PaymentMethod,
+    shippingFee: number
+  ) => {
     setIsSubmitting(true);
     setError(null);
     try {
@@ -23,6 +32,9 @@ export const useOrderSubmission = () => {
         customer,
         items,
         totalPrice,
+        deliveryMethod,
+        paymentMethod,
+        shippingFee,
         createdAt: serverTimestamp(),
         status: 'pending',
         estimatedCompletionDate: null,
@@ -30,7 +42,7 @@ export const useOrderSubmission = () => {
       });
 
       // 2. Mock Telegram Notification
-      await notifyOwner(customer, items, totalPrice);
+      await notifyOwner(customer, items, totalPrice, deliveryMethod);
 
       setSuccess(true);
     } catch (err: any) {
@@ -41,14 +53,13 @@ export const useOrderSubmission = () => {
     }
   };
 
-  const notifyOwner = async (customer: CustomerData, items: CartItem[], totalPrice: number) => {
+  const notifyOwner = async (customer: CustomerData, items: CartItem[], totalPrice: number, deliveryMethod: string) => {
     // This is a mock implementation of a Telegram notification
     console.log("🔔 [NOTIFY] New order received!");
     console.log(`Customer: ${customer.name} (${customer.phone})`);
+    console.log(`Method: ${deliveryMethod}`);
     console.log(`Items: ${items.map(i => `${i.name} x${i.quantity}`).join(', ')}`);
     console.log(`Total: $${totalPrice}`);
-    
-    // Logic for real notification remains commented out as before
   };
 
   return { submitOrder, isSubmitting, error, success };

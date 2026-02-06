@@ -26,7 +26,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
       <div className="absolute inset-0 bg-gradient-to-br from-[#FF5722]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       {/* Product Image */}
-      <div className="relative h-64 overflow-hidden bg-white/5">
+      <div className="relative h-48 sm:h-64 overflow-hidden bg-white/5">
         {product.images?.[0] ? (
           <motion.img 
             src={product.images[0]} 
@@ -35,52 +35,52 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-700">
-            <Box size={40} className="opacity-20" />
+            <Box size={32} className="opacity-20 md:size-40" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
-        <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
+        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-black/80 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
           單位售價: <span className="text-[#FF5722] ml-1">${product.price}</span>
         </div>
       </div>
 
       {/* Product Info */}
-      <div className="p-6 flex flex-col flex-grow relative z-10">
-        <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 group-hover:text-[#FF5722] transition-colors duration-300">
+      <div className="p-4 sm:p-6 flex flex-col flex-grow relative z-10">
+        <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter mb-2 group-hover:text-[#FF5722] transition-colors duration-300">
           {product.name}
         </h3>
 
-        <p className="text-gray-400 text-xs leading-relaxed mb-6 font-light line-clamp-2">
+        <p className="text-gray-400 text-[10px] sm:text-xs leading-relaxed mb-4 sm:mb-6 font-light line-clamp-2">
           {product.description}
         </p>
 
         {/* Technical Specs Grid */}
-        <div className="grid grid-cols-2 gap-y-4 gap-x-2 mt-auto pt-6 border-t border-white/5">
+        <div className="grid grid-cols-2 gap-y-3 sm:gap-y-4 gap-x-2 mt-auto pt-4 sm:pt-6 border-t border-white/5">
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest">材質</span>
-            <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono">
-              <Box size={12} className="text-[#FF5722]" />
+            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">材質</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+              <Box size={10} className="text-[#FF5722] sm:size-12" />
               <span>{product.materials[0]}</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest">重量</span>
-            <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono">
-              <HardDrive size={12} className="text-[#FF5722]" />
+            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">重量</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+              <HardDrive size={10} className="text-[#FF5722] sm:size-12" />
               <span>{product.weight_g}G</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest">預估工時</span>
-            <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono">
-              <Clock size={12} className="text-[#FF5722]" />
+            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">預估工時</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+              <Clock size={10} className="text-[#FF5722] sm:size-12" />
               <span>{hours}H {minutes}M</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] text-gray-500 uppercase font-black tracking-widest">製造精度</span>
-            <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono">
-              <Zap size={12} className="text-[#FF5722]" />
+            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">製造精度</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+              <Zap size={10} className="text-[#FF5722] sm:size-12" />
               <span>±0.1MM</span>
             </div>
           </div>
