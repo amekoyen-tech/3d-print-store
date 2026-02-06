@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Package, Truck, Clock, CreditCard, ChevronRight } from 'lucide-react';
 import { ContactForm } from './components/ContactForm';
+import { ProductImageGallery } from './components/ProductImageGallery';
+import { FloatingContactButtons } from './components/FloatingContactButtons';
 
 interface TimeSpec {
   fast: number;
@@ -101,18 +103,16 @@ export default function App() {
           {PRODUCTS.map((product) => {
             const estimatedHours = calculateDelivery(product.printTime, product.assemblyTime);
             return (
-              <div 
+              <div
                 key={product.id}
                 className="maker-card group rounded-[32px] overflow-hidden flex flex-col"
               >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+                <div className="relative">
+                  <ProductImageGallery
+                    images={product.images}
+                    productName={product.name}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark-matte/80 to-transparent opacity-60" />
-                  <div className="absolute top-6 left-6 bg-dark-matte/90 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-bold tracking-[0.2em] border border-white/10 uppercase">
+                  <div className="absolute top-6 left-6 bg-dark-matte/90 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-bold tracking-[0.2em] border border-white/10 uppercase z-10">
                     {product.material}
                   </div>
                 </div>
@@ -190,11 +190,14 @@ export default function App() {
 
       {/* Order Modal */}
       {selectedProduct && (
-        <ContactForm 
-          productName={selectedProduct.name} 
-          onClose={() => setSelectedProduct(null)} 
+        <ContactForm
+          productName={selectedProduct.name}
+          onClose={() => setSelectedProduct(null)}
         />
       )}
+
+      {/* Floating Contact Buttons */}
+      <FloatingContactButtons />
     </div>
   );
 }
