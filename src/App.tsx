@@ -15,7 +15,7 @@ interface Product {
   price: number;
   printTime: TimeSpec;
   assemblyTime: TimeSpec;
-  image: string;
+  images: string[];
   material: string;
 }
 
@@ -27,7 +27,12 @@ const PRODUCTS: Product[] = [
     price: 450,
     printTime: { fast: 4, mid: 6, slow: 8 },
     assemblyTime: { fast: 0.5, mid: 1, slow: 1.5 },
-    image: 'https://images.unsplash.com/photo-1589118949245-7d38baf380d6?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1589118949245-7d38baf380d6?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1585399817128-f6a1b949e71c?auto=format&fit=crop&q=80&w=800'
+    ],
     material: 'PLA+ / Carbon Fiber Black'
   },
   {
@@ -37,7 +42,12 @@ const PRODUCTS: Product[] = [
     price: 850,
     printTime: { fast: 12, mid: 16, slow: 20 },
     assemblyTime: { fast: 2, mid: 3, slow: 4 },
-    image: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1487215078519-e21cc028cb29?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=800'
+    ],
     material: 'PETG / Galaxy Orange'
   }
 ];
