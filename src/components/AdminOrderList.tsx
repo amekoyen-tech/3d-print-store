@@ -3,6 +3,7 @@ import { Order, OrderStatus, DeliveryMethod, PaymentMethod } from '../types';
 import { useOrders } from '../hooks/useOrders';
 import { useOrderMessages } from '../hooks/useOrderMessages';
 import { useModificationRequests } from '../hooks/useModificationRequests';
+import { useDialog } from '../contexts/DialogContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle2, XCircle, Calendar, ChevronDown, ChevronUp, Trash2, User, Truck, CreditCard, MessageCircle, Settings, ThumbsUp, ThumbsDown } from 'lucide-react';
 import OrderMessageBox from './OrderMessageBox';
@@ -78,6 +79,7 @@ const OrderCard: React.FC<{
   onDelete: (id: string) => void;
   calculateEstimation: () => Promise<Date>;
 }> = ({ order, expanded, onToggle, onUpdateStatus, onDelete, calculateEstimation }) => {
+  const { confirm, alert } = useDialog();
   const [actionNote, setActionNote] = useState('');
   const [estDate, setEstDate] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
@@ -113,13 +115,14 @@ const OrderCard: React.FC<{
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (window.confirm('確定刪除此訂單？此動作無法復原。')) {
+
+    const confirmed = await confirm('確定刪除此訂單？此動作無法復原。', '刪除訂單');
+    if (confirmed) {
       try {
         await onDelete(order.id);
       } catch (err: any) {
         console.error('Delete error:', err);
-        alert('刪除失敗: ' + (err.message || '未知錯誤'));
+        await alert('刪除失敗: ' + (err.message || '未知錯誤'), '錯誤', 'error');
       }
     }
   };
@@ -464,13 +467,14 @@ const ModificationRequestsAdmin: React.FC<{
   requests: Order['modificationRequests'];
 }> = ({ orderId, requests }) => {
   const { approveRequest, rejectRequest } = useModificationRequests();
+  const { alert } = useDialog();
   const [selectedReq, setSelectedReq] = useState<string | null>(null);
   const [response, setResponse] = useState('');
   const [processing, setProcessing] = useState(false);
 
   const handleApprove = async (reqId: string) => {
     if (!response.trim()) {
-      alert('請填寫回應內容');
+      await alert('請填寫回應內容', '提示', 'warning');
       return;
     }
 
@@ -479,8 +483,9 @@ const ModificationRequestsAdmin: React.FC<{
       await approveRequest(orderId, reqId, response);
       setSelectedReq(null);
       setResponse('');
+      await alert('已批准修改請求', '成功', 'success');
     } catch (err) {
-      alert('操作失敗');
+      await alert('操作失敗', '錯誤', 'error');
     } finally {
       setProcessing(false);
     }
@@ -488,7 +493,7 @@ const ModificationRequestsAdmin: React.FC<{
 
   const handleReject = async (reqId: string) => {
     if (!response.trim()) {
-      alert('請填寫拒絕理由');
+      await alert('請填寫拒絕理由', '提示', 'warning');
       return;
     }
 
@@ -497,8 +502,9 @@ const ModificationRequestsAdmin: React.FC<{
       await rejectRequest(orderId, reqId, response);
       setSelectedReq(null);
       setResponse('');
+      await alert('已拒絕修改請求', '完成', 'info');
     } catch (err) {
-      alert('操作失敗');
+      await alert('操作失敗', '錯誤', 'error');
     } finally {
       setProcessing(false);
     }

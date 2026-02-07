@@ -8,6 +8,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const TrackOrderPage = lazy(() => import('./pages/TrackOrderPage'));
 import { CartProvider, useCart } from './contexts/CartContext';
+import { DialogProvider } from './contexts/DialogContext';
 import { CartDrawer } from './components/CartDrawer';
 import { ShoppingCart } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -90,11 +91,13 @@ import ErrorBoundary from './components/ErrorBoundary';
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <CartProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </CartProvider>
+      <DialogProvider>
+        <CartProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </CartProvider>
+      </DialogProvider>
     </ErrorBoundary>
   );
 };

@@ -90,10 +90,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
           {order.items?.map((item, i) => (
             <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5">
               <div>
-                <p className="font-bold text-white">{item.productName}</p>
-                {item.selectedColor && (
+                <p className="font-bold text-white">{item.name}</p>
+                {item.selectedColor && item.selectedColor !== 'default' && (
                   <p className="text-xs text-gray-400 mt-1">
-                    顏色: <span className="text-[#FF5722]">{item.selectedColor}</span>
+                    顏色: <span className="text-[#FF5722]">{typeof item.selectedColor === 'object' ? item.selectedColor.name : '預設'}</span>
                   </p>
                 )}
               </div>
@@ -118,7 +118,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
           </div>
           <span className="text-xs text-gray-500">{expandedMessages ? '收起' : '展開'}</span>
         </button>
-        {expandedMessages && <OrderMessageBox orderId={order.id} />}
+        {expandedMessages && <OrderMessageBox orderId={order.id} customerName={order.customer?.name || '客戶'} />}
       </div>
 
       {/* Modification Requests Section */}
