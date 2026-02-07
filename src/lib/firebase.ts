@@ -1,7 +1,7 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-import { getAuth } from "firebase/auth";
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getAuth, Auth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 // For Vite, use import.meta.env.VITE_FIREBASE_...
@@ -15,8 +15,62 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const auth = getAuth(app);
+// Lazy initialization - Firebase SDK only initializes when first accessed
+let appInstance: FirebaseApp | null = null;
+let dbInstance: Firestore | null = null;
+let storageInstance: FirebaseStorage | null = null;
+let authInstance: Auth | null = null;
+
+// Initialize Firebase only when first needed
+const initFirebase = (): FirebaseApp => {
+  if (!appInstance) {
+    appInstance = initializeApp(firebaseConfig);
+    console.log('[Firebase] Initialized on demand');
+  }
+  return appInstance;
+};
+
+// Lazy getters - initialize on first access
+export const getDB = (): Firestore => {
+  if (!dbInstance) {
+    const app = initFirebase();
+    dbInstance = getFirestore(app);
+  }
+  return dbInstance;
+};
+
+export const getStorageInstance = (): FirebaseStorage => {
+  if (!storageInstance) {
+    const app = initFirebase();
+    storageInstance = getStorage(app);
+  }
+  return storageInstance;
+};
+
+export const getAuthInstance = (): Auth => {
+  if (!authInstance) {
+    const app = initFirebase();
+    authInstance = getAuth(app);
+  }
+  return authInstance;
+};
+
+// Backward compatible exports
+// These are lazy-loaded via getter pattern
+export const db: Firestore = new Proxy({} as Firestore, {
+  get(_, prop) {
+    return getDB()[prop as keyof Firestore];
+  }
+}) as Firestore;
+
+export const storage: FirebaseStorage = new Proxy({} as FirebaseStorage, {
+  get(_, prop) {
+    return getStorageInstance()[prop as keyof FirebaseStorage];
+  }
+}) as FirebaseStorage;
+
+export const auth: Auth = new Proxy({} as Auth, {
+  get(_, prop) {
+    return getAuthInstance()[prop as keyof Auth];
+  }
+}) as Auth;

@@ -24,8 +24,9 @@ const HomePage: React.FC = () => {
       {/* Background Decor */}
       <div className="fixed inset-0 industrial-grid opacity-20 pointer-events-none" />
       <div className="fixed inset-0 industrial-grid-dots opacity-30 pointer-events-none" />
-      <div className="fixed -top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#FF5722] blur-[150px] rounded-full opacity-5 pointer-events-none" />
-      <div className="fixed -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-white blur-[150px] rounded-full opacity-5 pointer-events-none" />
+      {/* Heavy blur effects hidden on mobile for better performance */}
+      <div className="hidden md:block fixed -top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#FF5722] blur-[150px] rounded-full opacity-5 pointer-events-none" />
+      <div className="hidden md:block fixed -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-white blur-[150px] rounded-full opacity-5 pointer-events-none" />
 
       {/* Nav */}
       <nav className="absolute top-0 left-0 right-0 p-6 flex justify-end z-50 max-w-7xl mx-auto">

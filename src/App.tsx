@@ -1,14 +1,28 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import AdminPage from './pages/AdminPage';
-import LoginPage from './pages/LoginPage';
-import TrackOrderPage from './pages/TrackOrderPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+
+// Lazy load route components for code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const TrackOrderPage = lazy(() => import('./pages/TrackOrderPage'));
 import { CartProvider, useCart } from './contexts/CartContext';
 import { CartDrawer } from './components/CartDrawer';
 import { ShoppingCart } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+// Loading screen component for lazy-loaded routes
+const LoadingScreen: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-[#FF5722] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-white/60 text-sm tracking-wider uppercase">載入中...</p>
+      </div>
+    </div>
+  );
+};
 
 const FloatingCartButton: React.FC = () => {
   const { totalItems, setIsCartOpen } = useCart();
@@ -50,19 +64,21 @@ const AppContent: React.FC = () => {
               ⚠️ SIMULATION MODE: Connected to Local Emulator Suite (Safe for Testing)
           </div>
       )}
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/track" element={<TrackOrderPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route 
-          path="/admin" 
-          element={
-            <AdminProtectedRoute>
-              <AdminPage />
-            </AdminProtectedRoute>
-          } 
-        />
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/track" element={<TrackOrderPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminPage />
+              </AdminProtectedRoute>
+            }
+          />
+        </Routes>
+      </Suspense>
       <CartDrawer />
       <FloatingCartButton />
     </>

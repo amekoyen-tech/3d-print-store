@@ -10,6 +10,16 @@ interface ProductDetailProps {
   onBack: () => void;
 }
 
+// Helper function to optimize Unsplash image URLs
+const optimizeImageUrl = (url: string, width = 800, quality = 85): string => {
+  if (!url) return url;
+  if (url.includes('unsplash.com')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}w=${width}&q=${quality}&auto=format&fit=crop`;
+  }
+  return url;
+};
+
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -66,8 +76,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
               {images[validImageIndex] ? (
                 <motion.img
                   key={validImageIndex}
-                  src={images[validImageIndex]}
+                  src={optimizeImageUrl(images[validImageIndex], 800, 85)}
                   alt={product.name}
+                  loading="lazy"
+                  decoding="async"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -112,7 +124,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                       : 'border border-[#333] opacity-50 hover:opacity-75 hover:border-[#FF5722]'
                   }`}
                 >
-                  <img src={img} className="w-full h-full object-cover" alt={`view ${i}`} />
+                  <img
+                    src={optimizeImageUrl(img, 200, 75)}
+                    className="w-full h-full object-cover"
+                    alt={`view ${i}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </motion.div>
               ))}
             </div>
@@ -179,12 +197,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                           onClick={() => setSelectedColor(color)}
                           className={`group relative p-1 rounded-full border-2 transition-all ${selectedColor !== 'default' && selectedColor.id === color.id ? 'border-[#FF5722] scale-110' : 'border-white/20 hover:border-white/40'}`}
                         >
-                          <div 
+                          <div
                             className="w-10 h-10 rounded-full shadow-inner overflow-hidden border border-white/10"
                             style={{ backgroundColor: color.hexCode }}
                           >
                             {color.imageUrl && (
-                              <img src={color.imageUrl} alt="" className="w-full h-full object-cover" />
+                              <img
+                                src={optimizeImageUrl(color.imageUrl, 80, 70)}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
                             )}
                           </div>
                           <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
