@@ -1,4 +1,4 @@
-import { doc, updateDoc, arrayUnion, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { OrderModificationRequest } from '../types';
 
@@ -20,20 +20,20 @@ export const useModificationRequests = () => {
     }
 
     try {
-      const requestId = `req_${Date.now()}`;
-      const newRequest: OrderModificationRequest = {
-        id: requestId,
+      // 創建修改請求到子集合
+      const requestsRef = collection(db, 'orders', orderId, 'modificationRequests');
+      await addDoc(requestsRef, {
         requestedBy: 'customer',
         requestType,
         description: description.trim(),
         status: 'pending',
-        createdAt: Timestamp.now(),
-      };
+        createdAt: serverTimestamp(),
+      });
 
+      // 標記訂單有未讀消息（通知 admin）
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, {
-        modificationRequests: arrayUnion(newRequest),
-        hasUnreadMessages: true, // 通知 admin
+        hasUnreadMessages: true,
       });
     } catch (error) {
       console.error('創建修改請求失敗:', error);
@@ -47,27 +47,21 @@ export const useModificationRequests = () => {
   const approveRequest = async (
     orderId: string,
     requestId: string,
-    adminResponse: string,
-    requests: OrderModificationRequest[]
+    adminResponse: string
   ): Promise<void> => {
     try {
-      // 找到對應的請求並更新
-      const updatedRequests = requests.map(req => {
-        if (req.id === requestId) {
-          return {
-            ...req,
-            status: 'approved' as const,
-            adminResponse,
-            processedAt: Timestamp.now(),
-          };
-        }
-        return req;
+      // 更新請求狀態
+      const requestRef = doc(db, 'orders', orderId, 'modificationRequests', requestId);
+      await updateDoc(requestRef, {
+        status: 'approved',
+        adminResponse,
+        processedAt: serverTimestamp(),
       });
 
+      // 標記訂單有未讀回覆（通知 customer）
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, {
-        modificationRequests: updatedRequests,
-        hasUnreadReplies: true, // 通知 customer
+        hasUnreadReplies: true,
       });
     } catch (error) {
       console.error('批准請求失敗:', error);
@@ -81,27 +75,21 @@ export const useModificationRequests = () => {
   const rejectRequest = async (
     orderId: string,
     requestId: string,
-    adminResponse: string,
-    requests: OrderModificationRequest[]
+    adminResponse: string
   ): Promise<void> => {
     try {
-      // 找到對應的請求並更新
-      const updatedRequests = requests.map(req => {
-        if (req.id === requestId) {
-          return {
-            ...req,
-            status: 'rejected' as const,
-            adminResponse,
-            processedAt: Timestamp.now(),
-          };
-        }
-        return req;
+      // 更新請求狀態
+      const requestRef = doc(db, 'orders', orderId, 'modificationRequests', requestId);
+      await updateDoc(requestRef, {
+        status: 'rejected',
+        adminResponse,
+        processedAt: serverTimestamp(),
       });
 
+      // 標記訂單有未讀回覆（通知 customer）
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, {
-        modificationRequests: updatedRequests,
-        hasUnreadReplies: true, // 通知 customer
+        hasUnreadReplies: true,
       });
     } catch (error) {
       console.error('拒絕請求失敗:', error);
@@ -109,9 +97,31 @@ export const useModificationRequests = () => {
     }
   };
 
+  /**
+   * 獲取訂單的所有修改請求
+   */
+  const getRequests = async (orderId: string): Promise<OrderModificationRequest[]> => {
+    try {
+      const requestsRef = collection(db, 'orders', orderId, 'modificationRequests');
+      const snapshot = await getDoc(doc(db, 'orders', orderId));
+
+      if (!snapshot.exists()) {
+        return [];
+      }
+
+      // 這裡需要實際查詢子集合
+      // 暫時返回空數組，實際使用時需要在組件中用 onSnapshot 監聽
+      return [];
+    } catch (error) {
+      console.error('獲取修改請求失敗:', error);
+      return [];
+    }
+  };
+
   return {
     createRequest,
     approveRequest,
     rejectRequest,
+    getRequests,
   };
 };

@@ -476,7 +476,7 @@ const ModificationRequestsAdmin: React.FC<{
 
     try {
       setProcessing(true);
-      await approveRequest(orderId, reqId, response, requests || []);
+      await approveRequest(orderId, reqId, response);
       setSelectedReq(null);
       setResponse('');
     } catch (err) {
@@ -494,7 +494,7 @@ const ModificationRequestsAdmin: React.FC<{
 
     try {
       setProcessing(true);
-      await rejectRequest(orderId, reqId, response, requests || []);
+      await rejectRequest(orderId, reqId, response);
       setSelectedReq(null);
       setResponse('');
     } catch (err) {

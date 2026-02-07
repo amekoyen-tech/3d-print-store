@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, updateDoc, arrayUnion, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { OrderMessage } from '../types';
 import { uploadOrderMessageImage } from '../utils/imageUpload';
@@ -9,16 +9,20 @@ export const useOrderMessages = (orderId: string) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // 即時監聽訂單留言
+  // 即時監聽訂單留言（使用子集合）
   useEffect(() => {
     if (!orderId) return;
 
-    const orderRef = doc(db, 'orders', orderId);
-    const unsubscribe = onSnapshot(orderRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const orderData = snapshot.data();
-        setMessages(orderData.messages || []);
-      }
+    const messagesRef = collection(db, 'orders', orderId, 'messages');
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messagesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as OrderMessage[];
+
+      setMessages(messagesData);
       setLoading(false);
     }, (error) => {
       console.error('監聽留言失敗:', error);
@@ -49,30 +53,28 @@ export const useOrderMessages = (orderId: string) => {
     try {
       setUploading(true);
 
-      const messageId = `msg_${Date.now()}`;
       let imageUrl: string | undefined;
 
       // 如果有圖片，先上傳
       if (imageFile) {
+        const messageId = `msg_${Date.now()}`;
         imageUrl = await uploadOrderMessageImage(orderId, messageId, imageFile);
       }
 
-      // 創建留言物件
-      const newMessage: OrderMessage = {
-        id: messageId,
+      // 創建留言到子集合
+      const messagesRef = collection(db, 'orders', orderId, 'messages');
+      await addDoc(messagesRef, {
         sender,
         senderName,
         content: content.trim(),
         imageUrl,
         type: 'message',
-        timestamp: Timestamp.now(),
-      };
+        timestamp: serverTimestamp(), // 使用 serverTimestamp 避免時區問題
+      });
 
-      // 更新 Firestore
+      // 更新訂單的未讀狀態
       const orderRef = doc(db, 'orders', orderId);
-      const updates: any = {
-        messages: arrayUnion(newMessage),
-      };
+      const updates: any = {};
 
       // 標記未讀
       if (sender === 'customer') {
@@ -117,19 +119,18 @@ export const useOrderMessages = (orderId: string) => {
    */
   const addSystemMessage = async (content: string): Promise<void> => {
     try {
-      const messageId = `sys_${Date.now()}`;
-      const systemMessage: OrderMessage = {
-        id: messageId,
+      const messagesRef = collection(db, 'orders', orderId, 'messages');
+      await addDoc(messagesRef, {
         sender: 'admin',
         senderName: '系統',
         content,
         type: 'system',
-        timestamp: Timestamp.now(),
-      };
+        timestamp: serverTimestamp(),
+      });
 
+      // 標記為未讀
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, {
-        messages: arrayUnion(systemMessage),
         hasUnreadReplies: true,
       });
     } catch (error) {

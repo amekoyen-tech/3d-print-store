@@ -12,7 +12,12 @@
       "Bash(npm run build:*)",
       "Bash(npx tsc:*)",
       "Bash(timeout 10 npm run dev:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npm run test:mobile:*)",
+      "Bash(cd /e/code base/3d-print-store)",
+      "Bash(npm run dev:*)",
+      "Bash(firebase deploy:*)"
     ]
   }
 }
