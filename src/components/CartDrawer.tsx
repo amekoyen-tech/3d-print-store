@@ -108,7 +108,7 @@ export const CartDrawer: React.FC = () => {
                         {item.image ? (
                           <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-700 font-black">NO IMAGE</div>
+                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-700 font-black">NO IMAGE</div>
                         )}
                       </div>
                       <div className="flex-grow flex flex-col justify-between">
@@ -122,7 +122,7 @@ export const CartDrawer: React.FC = () => {
                           <div className="flex items-center gap-2 mt-1">
                              <span className="text-[#FF5722] font-mono text-sm font-bold">${item.price}</span>
                              {item.selectedColor && (
-                               <span className="text-[9px] uppercase bg-white/5 px-2 py-0.5 rounded-full border border-white/10 text-gray-400">
+                               <span className="text-micro uppercase bg-white/5 px-2 py-0.5 rounded-full border border-white/10 text-gray-400">
                                  {item.selectedColor === 'default' ? '預設顏色' : item.selectedColor.name}
                                </span>
                              )}
@@ -174,7 +174,7 @@ export const CartDrawer: React.FC = () => {
                               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:border-[#FF5722] outline-none transition-all placeholder:text-white/20 font-bold"
                               placeholder="Email / LINE ID / IG 帳號 *"
                             />
-                            <p className="text-[9px] text-[#FF5722] font-black uppercase tracking-widest ml-1 animate-pulse">
+                            <p className="text-micro text-[#FF5722] font-black uppercase tracking-widest ml-1 animate-pulse">
                                💡 提醒：Email 將作為日後「查詢訂單」的唯一識別鑰匙
                             </p>
                          </div>
@@ -231,7 +231,7 @@ export const CartDrawer: React.FC = () => {
                              type="button"
                              disabled={method.disabled}
                              onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                             className={`p-3 rounded-xl border transition-all text-[10px] uppercase font-black ${paymentMethod === method.id ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/20 disabled:opacity-20 disabled:cursor-not-allowed'}`}
+                             className={`p-3 rounded-xl border transition-all text-xs uppercase font-black ${paymentMethod === method.id ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/20 disabled:opacity-20 disabled:cursor-not-allowed'}`}
                            >
                               {method.label}
                            </button>
@@ -240,7 +240,7 @@ export const CartDrawer: React.FC = () => {
                    </section>
 
                    <section className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">特別需求備註</label>
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">特別需求備註</label>
                       <textarea 
                         value={customer.notes}
                         onChange={(e) => setCustomer({...customer, notes: e.target.value})}
@@ -257,12 +257,12 @@ export const CartDrawer: React.FC = () => {
             {!success && items.length > 0 && (
               <div className="p-8 border-t border-white/5 bg-[#111] space-y-6">
                 <div className="space-y-2">
-                   <div className="flex justify-between items-center text-gray-500 text-[10px] font-black uppercase tracking-widest">
+                   <div className="flex justify-between items-center text-gray-500 text-xs font-black uppercase tracking-widest">
                      <span>小計 Subtotal</span>
                      <span>${totalPrice}</span>
                    </div>
                    {deliveryMethod === 'mailing' && (
-                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                      <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
                         <span className="text-gray-500">運費 Shipping</span>
                         <span className={shippingFee === 0 ? 'text-green-500' : 'text-white'}>
                            {shippingFee === 0 ? 'FREE 免運' : `$${shippingFee}`}
@@ -274,7 +274,7 @@ export const CartDrawer: React.FC = () => {
                      <span className="text-3xl font-mono font-black text-[#FF5722] drop-shadow-[0_0_10px_rgba(255,87,34,0.3)]">${finalTotal}</span>
                    </div>
                    {deliveryMethod === 'mailing' && totalPrice < freeShippingThreshold && (
-                     <p className="text-[9px] text-gray-600 text-right font-bold italic">
+                     <p className="text-micro text-gray-600 text-right font-bold italic">
                        再購滿 ${freeShippingThreshold - totalPrice} 即可享免運費
                      </p>
                    )}

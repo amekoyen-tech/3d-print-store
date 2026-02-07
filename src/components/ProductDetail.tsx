@@ -94,7 +94,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             {/* Image Counter Badge */}
             {images.length > 1 && (
               <div className="absolute top-6 right-6 bg-black/80 backdrop-blur-xl border border-[#FF5722]/30 px-4 py-2 rounded-full shadow-2xl">
-                <p className="text-[10px] font-black text-[#FF5722] tracking-widest uppercase">
+                <p className="text-xs font-black text-[#FF5722] tracking-widest uppercase">
                   {validImageIndex + 1} / {images.length}
                 </p>
               </div>
@@ -105,7 +105,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 <Package size={20} className="text-[#FF5722]" />
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">材質 (Material)</p>
+                <p className="text-xs text-gray-500 uppercase font-black tracking-widest">材質 (Material)</p>
                 <p className="text-sm font-black tracking-tight">{product.materials.join(' / ')}</p>
               </div>
             </div>
@@ -150,12 +150,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             </h1>
             <div className="flex items-center gap-4 flex-wrap">
               <p className="text-2xl sm:text-3xl text-[#FF5722] font-mono font-bold">${basePrice + customFee}.00</p>
-              <span className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[10px] uppercase font-bold tracking-widest text-gray-400">
+              <span className="px-3 py-1 bg-white/5 border border-white/10 rounded text-xs uppercase font-bold tracking-widest text-gray-400">
                 現貨供應 (In Stock)
               </span>
             </div>
             {product.isCustomizable && selectedColor !== 'default' && product.customizationFee && product.customizationFee > 0 && (
-              <p className="text-[10px] text-gray-500 mt-2 font-mono uppercase tracking-widest">
+              <p className="text-xs text-gray-500 mt-2 font-mono uppercase tracking-widest">
                 * 含客製化費用 +${product.customizationFee}
               </p>
             )}
@@ -163,7 +163,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
 
           <div className="space-y-6 sm:space-y-8 flex-grow">
             <div>
-              <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 sm:mb-4 flex items-center gap-2">
+              <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-3 sm:mb-4 flex items-center gap-2">
                 <Info size={12} className="text-[#FF5722]" /> 產品描述 (Description)
               </h3>
               <p className="text-gray-300 leading-relaxed font-light text-base sm:text-lg italic border-l-2 border-[#222] pl-4 sm:pl-6">
@@ -184,9 +184,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                         className={`group relative p-1 rounded-full border-2 transition-all ${selectedColor === 'default' ? 'border-[#FF5722] scale-110' : 'border-white/10 hover:border-white/30'}`}
                      >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center border border-white/10">
-                           <span className="text-[10px] font-black">預設</span>
+                           <span className="text-xs font-black">預設</span>
                         </div>
-                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
+                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
                           隨機/預設 (免客製費)
                         </span>
                      </button>
@@ -211,7 +211,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                               />
                             )}
                           </div>
-                          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
+                          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 z-50">
                             {color.name} ({color.material})
                           </span>
                         </button>
@@ -242,7 +242,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                   </button>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">總金額 (Total)</p>
+                  <p className="text-xs text-gray-500 uppercase font-bold tracking-widest">總金額 (Total)</p>
                   <p className="text-2xl font-mono font-black text-white">${totalPrice}.00</p>
                 </div>
               </div>
@@ -272,7 +272,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-[#FF5722]/10 rounded-xl"><Shield size={24} className="text-[#FF5722]" /></div>
                   <div>
-                    <span className="text-[10px] uppercase font-black tracking-[0.2em] text-[#FF5722] block mb-1">交貨保證</span>
+                    <span className="text-xs uppercase font-black tracking-[0.2em] text-[#FF5722] block mb-1">交貨保證</span>
                     <span className="text-xs text-gray-500 uppercase font-bold">預估交期 (Lead Time)</span>
                   </div>
                 </div>

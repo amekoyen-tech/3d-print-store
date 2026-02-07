@@ -112,11 +112,11 @@ const TrackOrderPage: React.FC = () => {
                   <div className="p-6 md:p-8 border-b border-white/5 bg-white/[0.02]">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div>
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">Order ID</p>
+                        <p className="text-xs text-gray-500 font-black uppercase tracking-widest mb-1">Order ID</p>
                         <p className="font-mono text-white/50 text-xs">{order.id}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">下單日期</p>
+                        <p className="text-xs text-gray-500 font-black uppercase tracking-widest mb-1">下單日期</p>
                         <p className="font-mono font-bold">
                            {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : new Date().toLocaleDateString()}
                         </p>
@@ -148,7 +148,7 @@ const TrackOrderPage: React.FC = () => {
                                       <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${isCompleted ? 'bg-[#FF5722] border-[#FF5722] text-black scale-100' : isCurrent ? 'bg-[#050505] border-[#FF5722] text-[#FF5722] scale-125 shadow-[0_0_20px_rgba(255,87,34,0.4)]' : 'bg-[#050505] border-[#222] text-gray-700'}`}>
                                          {step.icon}
                                       </div>
-                                      <span className={`absolute top-14 text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-colors duration-300 ${isCompleted || isCurrent ? 'text-white' : 'text-gray-700'}`}>
+                                      <span className={`absolute top-14 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-colors duration-300 ${isCompleted || isCurrent ? 'text-white' : 'text-gray-700'}`}>
                                          {step.label}
                                       </span>
                                    </div>
@@ -180,7 +180,7 @@ const TrackOrderPage: React.FC = () => {
                          </div>
                          <div className="text-right">
                             {/* Per Item Status */}
-                            <span className={`inline-block px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border ${item.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : item.status === 'printing' ? 'bg-[#FF5722]/10 text-[#FF5722] border-[#FF5722]/20' : 'bg-white/5 text-gray-500 border-white/10'}`}>
+                            <span className={`inline-block px-3 py-1 rounded text-xs font-black uppercase tracking-widest border ${item.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : item.status === 'printing' ? 'bg-[#FF5722]/10 text-[#FF5722] border-[#FF5722]/20' : 'bg-white/5 text-gray-500 border-white/10'}`}>
                                {item.status === 'completed' ? '已完成' : item.status === 'printing' ? '製作中' : '排程中'}
                             </span>
                          </div>
@@ -210,7 +210,7 @@ const TrackOrderPage: React.FC = () => {
                             訂單留言 (Messages)
                           </h3>
                           {order.hasUnreadReplies && (
-                            <span className="px-2 py-0.5 bg-[#FF5722] text-black text-[10px] font-black rounded-full animate-pulse">
+                            <span className="px-2 py-0.5 bg-[#FF5722] text-black text-xs font-black rounded-full animate-pulse">
                               有新回覆
                             </span>
                           )}
@@ -283,7 +283,7 @@ const TrackOrderPage: React.FC = () => {
                                   {req.requestType === 'change_address' && '修改地址'}
                                   {req.requestType === 'other' && '其他'}
                                 </span>
-                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${
                                   req.status === 'pending'
                                     ? 'bg-[#FF9800] text-black'
                                     : req.status === 'approved'
@@ -298,7 +298,7 @@ const TrackOrderPage: React.FC = () => {
                               <p className="text-sm text-gray-300 mb-2">{req.description}</p>
                               {req.adminResponse && (
                                 <div className="mt-3 pt-3 border-t border-white/10">
-                                  <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">商家回應:</p>
+                                  <p className="text-xs font-bold text-gray-500 uppercase mb-1">商家回應:</p>
                                   <p className="text-xs text-gray-400">{req.adminResponse}</p>
                                 </div>
                               )}

@@ -59,7 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
-        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-black/80 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
+        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-black/80 backdrop-blur-md text-white text-micro sm:text-xs font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
           單位售價: <span className="text-[#FF5722] ml-1">${product.price}</span>
         </div>
       </div>
@@ -70,36 +70,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           {product.name}
         </h3>
 
-        <p className="text-gray-400 text-[10px] sm:text-xs leading-relaxed mb-4 sm:mb-6 font-light line-clamp-2">
+        <p className="text-gray-400 text-xs sm:text-xs leading-relaxed mb-4 sm:mb-6 font-light line-clamp-2">
           {product.description}
         </p>
 
         {/* Technical Specs Grid */}
         <div className="grid grid-cols-2 gap-y-3 sm:gap-y-4 gap-x-2 mt-auto pt-4 sm:pt-6 border-t border-white/5">
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">材質</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">材質</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <Box size={10} className="text-[#FF5722] sm:size-12" />
               <span>{product.materials[0]}</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">重量</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">重量</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <HardDrive size={10} className="text-[#FF5722] sm:size-12" />
               <span>{product.weight_g}G</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">預估工時</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">預估工時</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <Clock size={10} className="text-[#FF5722] sm:size-12" />
               <span>{hours}H {minutes}M</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">製造精度</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">製造精度</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <Zap size={10} className="text-[#FF5722] sm:size-12" />
               <span>±0.1MM</span>
             </div>
@@ -142,7 +142,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
-        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-black/80 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
+        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-black/80 backdrop-blur-md text-white text-micro sm:text-xs font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
           單位售價: <span className="text-[#FF5722] ml-1">${product.price}</span>
         </div>
       </div>
@@ -153,36 +153,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           {product.name}
         </h3>
 
-        <p className="text-gray-400 text-[10px] sm:text-xs leading-relaxed mb-4 sm:mb-6 font-light line-clamp-2">
+        <p className="text-gray-400 text-xs sm:text-xs leading-relaxed mb-4 sm:mb-6 font-light line-clamp-2">
           {product.description}
         </p>
 
         {/* Technical Specs Grid */}
         <div className="grid grid-cols-2 gap-y-3 sm:gap-y-4 gap-x-2 mt-auto pt-4 sm:pt-6 border-t border-white/5">
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">材質</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">材質</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <Box size={10} className="text-[#FF5722] sm:size-12" />
               <span>{product.materials[0]}</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">重量</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">重量</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <HardDrive size={10} className="text-[#FF5722] sm:size-12" />
               <span>{product.weight_g}G</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">預估工時</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">預估工時</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <Clock size={10} className="text-[#FF5722] sm:size-12" />
               <span>{hours}H {minutes}M</span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] sm:text-[8px] text-gray-500 uppercase font-black tracking-widest">製造精度</span>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-gray-300 font-mono">
+            <span className="text-micro sm:text-nano text-gray-500 uppercase font-black tracking-widest">製造精度</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-nano sm:text-xs text-gray-300 font-mono">
               <Zap size={10} className="text-[#FF5722] sm:size-12" />
               <span>±0.1MM</span>
             </div>

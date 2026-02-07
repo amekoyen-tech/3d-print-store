@@ -5,12 +5,13 @@ import AdminProductForm from '../components/AdminProductForm';
 import AdminProductList from '../components/AdminProductList';
 import AdminOrderList from '../components/AdminOrderList';
 import AdminColorManager from '../components/AdminColorManager';
+import AdminProductionDashboard from '../components/AdminProductionDashboard';
 import { Product } from '../types';
-import { ArrowLeft, ShieldCheck, LayoutList, Archive, Palette } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, LayoutList, Archive, Palette, Factory } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
   const { products, loading, error, addProduct, deleteProduct, updateProduct } = useProducts();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'colors'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'colors' | 'production'>('orders');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const handleFormSubmit = async (productData: Omit<Product, 'id'>) => {
@@ -65,6 +66,12 @@ const AdminPage: React.FC = () => {
             >
               <Palette size={14} /> 色彩 (Colors)
             </button>
+            <button
+              onClick={() => setActiveTab('production')}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'production' ? 'bg-[#FF5722] text-black shadow-lg shadow-[#FF5722]/20' : 'text-gray-500 hover:text-white'}`}
+            >
+              <Factory size={14} /> 生產 (Production)
+            </button>
           </div>
         </div>
       </header>
@@ -111,8 +118,10 @@ const AdminPage: React.FC = () => {
           </>
         ) : activeTab === 'orders' ? (
           <AdminOrderList />
-        ) : (
+        ) : activeTab === 'colors' ? (
           <AdminColorManager />
+        ) : (
+          <AdminProductionDashboard />
         )}
       </main>
     </div>
