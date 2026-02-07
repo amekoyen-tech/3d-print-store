@@ -63,14 +63,20 @@ export const useOrderMessages = (orderId: string) => {
 
       // 創建留言到子集合
       const messagesRef = collection(db, 'orders', orderId, 'messages');
-      await addDoc(messagesRef, {
+      const messageData: any = {
         sender,
         senderName,
         content: content.trim(),
-        imageUrl,
         type: 'message',
         timestamp: serverTimestamp(), // 使用 serverTimestamp 避免時區問題
-      });
+      };
+
+      // 只在有圖片時才添加 imageUrl 欄位（避免 undefined）
+      if (imageUrl) {
+        messageData.imageUrl = imageUrl;
+      }
+
+      await addDoc(messagesRef, messageData);
 
       // 更新訂單的未讀狀態
       const orderRef = doc(db, 'orders', orderId);
