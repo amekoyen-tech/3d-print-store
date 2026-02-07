@@ -31,7 +31,7 @@ const initFirebase = (): FirebaseApp => {
 };
 
 // Lazy getters - initialize on first access
-export const getDB = (): Firestore => {
+const getDB = (): Firestore => {
   if (!dbInstance) {
     const app = initFirebase();
     dbInstance = getFirestore(app);
@@ -39,7 +39,7 @@ export const getDB = (): Firestore => {
   return dbInstance;
 };
 
-export const getStorageInstance = (): FirebaseStorage => {
+const getStorageInstance = (): FirebaseStorage => {
   if (!storageInstance) {
     const app = initFirebase();
     storageInstance = getStorage(app);
@@ -47,7 +47,7 @@ export const getStorageInstance = (): FirebaseStorage => {
   return storageInstance;
 };
 
-export const getAuthInstance = (): Auth => {
+const getAuthInstance = (): Auth => {
   if (!authInstance) {
     const app = initFirebase();
     authInstance = getAuth(app);
@@ -55,22 +55,8 @@ export const getAuthInstance = (): Auth => {
   return authInstance;
 };
 
-// Backward compatible exports
-// These are lazy-loaded via getter pattern
-export const db: Firestore = new Proxy({} as Firestore, {
-  get(_, prop) {
-    return getDB()[prop as keyof Firestore];
-  }
-}) as Firestore;
-
-export const storage: FirebaseStorage = new Proxy({} as FirebaseStorage, {
-  get(_, prop) {
-    return getStorageInstance()[prop as keyof FirebaseStorage];
-  }
-}) as FirebaseStorage;
-
-export const auth: Auth = new Proxy({} as Auth, {
-  get(_, prop) {
-    return getAuthInstance()[prop as keyof Auth];
-  }
-}) as Auth;
+// Export instances directly (will initialize on first import)
+// This is simpler and more reliable than Proxy pattern
+export const db = getDB();
+export const storage = getStorageInstance();
+export const auth = getAuthInstance();
