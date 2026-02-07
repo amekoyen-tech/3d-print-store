@@ -19,6 +19,12 @@ service cloud.firestore {
       allow write: if isAdmin();  // Only admins can modify colors
     }
 
+    // Color swatches collection (alternative naming) - Public read, Admin write
+    match /color_swatches/{colorId} {
+      allow read: if true;  // Anyone can read color options
+      allow write: if isAdmin();  // Only admins can modify colors
+    }
+
     // Orders collection - Users can create and read their own, Admins can do everything
     match /orders/{orderId} {
       // Allow anyone to create new orders

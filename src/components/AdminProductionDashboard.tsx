@@ -9,7 +9,7 @@ type ProductionFilter = 'all' | 'accepted' | 'printing' | 'post_processing';
 
 export default function AdminProductionDashboard() {
   const { orders, updateOrderStatus } = useOrders();
-  const { products } = useProducts();
+  const { products, loading: productsLoading } = useProducts();
   const { confirm, alert } = useDialog();
   const [filter, setFilter] = useState<ProductionFilter>('all');
 
@@ -85,6 +85,11 @@ export default function AdminProductionDashboard() {
           <span className="text-xs bg-[#FF5722] text-black px-2 py-1 rounded font-bold">
             {totalItems} 項待製作
           </span>
+          {productsLoading && (
+            <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded font-bold">
+              載入產品資料中...
+            </span>
+          )}
         </h2>
       </div>
 
@@ -130,6 +135,7 @@ export default function AdminProductionDashboard() {
             key={order.id}
             order={order}
             products={products}
+            productsLoading={productsLoading}
             onStartPrinting={handleStartPrinting}
             onMoveToPostProcessing={handleMoveToPostProcessing}
             onComplete={handleComplete}
@@ -183,20 +189,26 @@ const FilterButton: React.FC<{
 const ProductionOrderCard: React.FC<{
   order: Order;
   products: Product[];
+  productsLoading: boolean;
   onStartPrinting: (id: string) => void;
   onMoveToPostProcessing: (id: string) => void;
   onComplete: (id: string) => void;
-}> = ({ order, products, onStartPrinting, onMoveToPostProcessing, onComplete }) => {
+}> = ({ order, products, productsLoading, onStartPrinting, onMoveToPostProcessing, onComplete }) => {
   const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('zh-TW') : '';
 
-  // 計算總工時
+  // 計算總工時（只有當產品資料可用時）
   const totalMinutes = useMemo(() => {
     return order.items.reduce((sum, item) => {
-      const product = products.find(p => p.id === item.productId);
-      if (!product) return sum;
+      // 提取真實的產品 ID（移除顏色後綴 '-colorId'）
+      const actualProductId = item.productId.split('-')[0];
+      const product = products.find(p => p.id === actualProductId);
+      if (!product) {
+        console.warn(`[AdminProductionDashboard] Product not found: ${item.productId} (actual: ${actualProductId}) in order ${order.id}`);
+        return sum;
+      }
       return sum + (product.print_time_min + product.post_processing_time_min) * item.quantity;
     }, 0);
-  }, [order.items, products]);
+  }, [order.items, products, order.id]);
 
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
@@ -235,12 +247,15 @@ const ProductionOrderCard: React.FC<{
 
         <div className="space-y-3">
           {order.items.map((item, idx) => {
-            const product = products.find(p => p.id === item.productId);
-            if (!product) return null;
+            // 查找產品資料（可選增強）
+            // 提取真實的產品 ID（移除顏色後綴 '-colorId'）
+            const actualProductId = item.productId.split('-')[0];
+            const product = products.find(p => p.id === actualProductId);
 
+            // 始終渲染項目 - 使用 CartItem 作為主要數據源
             return (
               <div key={idx} className="bg-[#080808] p-4 rounded-xl border border-white/5 flex gap-4">
-                {/* Product Image */}
+                {/* Product Image - 來自 CartItem */}
                 {item.image && (
                   <img
                     src={item.image}
@@ -251,11 +266,12 @@ const ProductionOrderCard: React.FC<{
 
                 {/* Product Info */}
                 <div className="flex-grow space-y-2">
+                  {/* 名稱和數量 - 來自 CartItem */}
                   <div className="flex items-center justify-between">
                     <h5 className="font-bold text-sm">{item.name} x{item.quantity}</h5>
                   </div>
 
-                  {/* Color Info */}
+                  {/* Color Info - 來自 CartItem */}
                   {item.selectedColor && item.selectedColor !== 'default' ? (
                     <div className="flex items-center gap-2">
                       <div
@@ -282,11 +298,18 @@ const ProductionOrderCard: React.FC<{
                     <p className="text-xs text-gray-500">預設顏色（無客製化）</p>
                   )}
 
-                  {/* Time Info */}
-                  <div className="flex gap-4 text-micro text-gray-500 font-mono">
-                    <span>列印: {product.print_time_min}min</span>
-                    <span>後處理: {product.post_processing_time_min}min</span>
-                  </div>
+                  {/* Time Info - 增強自 Product（可選）*/}
+                  {product ? (
+                    <div className="flex gap-4 text-micro text-gray-500 font-mono">
+                      <span>列印: {product.print_time_min}min</span>
+                      <span>後處理: {product.post_processing_time_min}min</span>
+                    </div>
+                  ) : (
+                    <div className="text-micro text-yellow-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      {productsLoading ? '載入產品詳情中...' : '⚠ 產品資料未找到'}
+                    </div>
+                  )}
                 </div>
               </div>
             );

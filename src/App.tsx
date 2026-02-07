@@ -9,7 +9,9 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const TrackOrderPage = lazy(() => import('./pages/TrackOrderPage'));
 import { CartProvider, useCart } from './contexts/CartContext';
 import { DialogProvider } from './contexts/DialogContext';
+import { FontSizeProvider } from './contexts/FontSizeContext';
 import { CartDrawer } from './components/CartDrawer';
+import FontSizeController from './components/FontSizeController';
 import { ShoppingCart } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -29,7 +31,8 @@ const FloatingCartButton: React.FC = () => {
   const { totalItems, setIsCartOpen } = useCart();
   const location = useLocation();
 
-  if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  // 隱藏條件：管理頁面、登入頁面、或購物車為空
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login' || totalItems === 0) return null;
 
   return (
     <motion.button
@@ -82,6 +85,7 @@ const AppContent: React.FC = () => {
       </Suspense>
       <CartDrawer />
       <FloatingCartButton />
+      <FontSizeController />
     </>
   );
 };
@@ -91,13 +95,15 @@ import ErrorBoundary from './components/ErrorBoundary';
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <DialogProvider>
-        <CartProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </CartProvider>
-      </DialogProvider>
+      <FontSizeProvider>
+        <DialogProvider>
+          <CartProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </CartProvider>
+        </DialogProvider>
+      </FontSizeProvider>
     </ErrorBoundary>
   );
 };

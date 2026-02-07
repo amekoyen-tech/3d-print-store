@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Product } from '../types';
-import { Plus, X, Upload, Image as ImageIcon, Save } from 'lucide-react';
+import { Plus, X, Upload, Image as ImageIcon, Save, ArrowLeft, ArrowRight } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../lib/firebase';
 
@@ -23,8 +23,10 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
     customizationFee: '',
   });
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,7 +43,10 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
         isCustomizable: initialData.isCustomizable || false,
         customizationFee: String(initialData.customizationFee || ''),
       });
-      setImagePreview(initialData.images?.[0] || null);
+      // 設置現有圖片 URLs
+      const urls = initialData.images || [];
+      setExistingImageUrls(urls);
+      setImagePreviews(urls);
     } else {
       resetForm();
     }
@@ -59,8 +64,10 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
       isCustomizable: false,
       customizationFee: '',
     });
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
+    setExistingImageUrls([]);
+    setUploadProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -73,16 +80,96 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFiles = Array.from(e.target.files || []);
+
+    // 驗證文件大小（每個 < 5MB）
+    const oversized = newFiles.filter(f => f.size > 5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      alert(`以下檔案超過 5MB 限制：${oversized.map(f => f.name).join(', ')}`);
+      return;
+    }
+
+    // 驗證總數量（最多 5 張）
+    const totalCount = existingImageUrls.length + imageFiles.length + newFiles.length;
+    if (totalCount > 5) {
+      alert(`最多只能上傳 5 張圖片（目前已有 ${existingImageUrls.length + imageFiles.length} 張）`);
+      return;
+    }
+
+    // 添加新文件
+    setImageFiles(prev => [...prev, ...newFiles]);
+
+    // 生成預覽
+    newFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        setImagePreviews(prev => [...prev, reader.result as string]);
       };
       reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    if (index < existingImageUrls.length) {
+      // 移除現有 URL
+      setExistingImageUrls(prev => prev.filter((_, i) => i !== index));
+    } else {
+      // 移除新文件
+      const fileIndex = index - existingImageUrls.length;
+      setImageFiles(prev => prev.filter((_, i) => i !== fileIndex));
     }
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const reorderImages = (fromIndex: number, toIndex: number) => {
+    // 更新預覽順序
+    setImagePreviews(prev => {
+      const newPreviews = [...prev];
+      const [moved] = newPreviews.splice(fromIndex, 1);
+      newPreviews.splice(toIndex, 0, moved);
+      return newPreviews;
+    });
+
+    // 同步更新 URLs 和文件
+    const isFromExisting = fromIndex < existingImageUrls.length;
+    const isToExisting = toIndex < existingImageUrls.length;
+
+    if (isFromExisting && isToExisting) {
+      // 兩者都是現有 URL
+      setExistingImageUrls(prev => {
+        const newUrls = [...prev];
+        const [moved] = newUrls.splice(fromIndex, 1);
+        newUrls.splice(toIndex, 0, moved);
+        return newUrls;
+      });
+    } else if (!isFromExisting && !isToExisting) {
+      // 兩者都是新文件
+      const fromFileIndex = fromIndex - existingImageUrls.length;
+      const toFileIndex = toIndex - existingImageUrls.length;
+      setImageFiles(prev => {
+        const newFiles = [...prev];
+        const [moved] = newFiles.splice(fromFileIndex, 1);
+        newFiles.splice(toFileIndex, 0, moved);
+        return newFiles;
+      });
+    } else {
+      // 混合情況：需要在 URL 和文件之間轉換（複雜，暫時不支持跨邊界）
+      alert('請將現有圖片和新圖片分別排序');
+    }
+  };
+
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    setUploadProgress(0);
+    const uploadPromises = files.map(async (file, index) => {
+      const storageRef = ref(storage, `products/${Date.now()}-${index}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      setUploadProgress(prev => prev + (100 / files.length));
+      return url;
+    });
+
+    return Promise.all(uploadPromises);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,11 +177,13 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
     setLoading(true);
 
     try {
-      let imageUrl = initialData?.images?.[0] || '';
-      if (imageFile) {
-        const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-        const snapshot = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+      // 從現有 URLs 開始
+      let finalImageUrls = [...existingImageUrls];
+
+      // 並行上傳新文件
+      if (imageFiles.length > 0) {
+        const newUrls = await uploadImages(imageFiles);
+        finalImageUrls = [...finalImageUrls, ...newUrls];
       }
 
       const productData: Omit<Product, 'id'> = {
@@ -104,25 +193,26 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
         print_time_min: Number(formData.print_time_min),
         post_processing_time_min: Number(formData.post_processing_time_min),
         price: Number(formData.price),
-        images: imageUrl ? [imageUrl] : [],
+        images: finalImageUrls,
         description: formData.description,
         isCustomizable: formData.isCustomizable,
         customizationFee: formData.customizationFee ? Number(formData.customizationFee) : 0,
       };
 
       await onSubmit(productData);
-      
+
       if (!initialData) {
         resetForm();
         alert('產品已新增 (Product Added)');
       } else {
         alert('產品已更新 (Product Updated)');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('操作失敗 (Action failed)');
+      alert('上傳失敗: ' + (error.message || '未知錯誤'));
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -262,34 +352,111 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
         </div>
 
         <div className="md:col-span-2">
-          <label className={labelClass}>產品圖片 (Product Image) <span className="text-gray-500 lowercase">(選填 Optional)</span></label>
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="group relative w-full h-48 border-2 border-dashed border-white/10 hover:border-[#FF5722]/50 transition-colors cursor-pointer flex flex-col items-center justify-center bg-white/5 overflow-hidden"
-          >
-            {imagePreview ? (
-              <>
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Upload className="text-[#FF5722] mb-2" />
-                  <span className="text-xs font-bold uppercase tracking-widest">更換圖片 (Change)</span>
+          <label className={labelClass}>
+            產品圖片 (Product Images)
+            <span className="text-gray-500 lowercase ml-2">(選填 Optional, 最多 5 張)</span>
+            {imagePreviews.length > 0 && (
+              <span className="ml-2 text-white">{imagePreviews.length}/5</span>
+            )}
+          </label>
+
+          {/* 預覽網格 */}
+          <div className="grid grid-cols-5 gap-3 mb-4">
+            {imagePreviews.map((preview, index) => (
+              <div key={index} className="relative group aspect-square bg-white/5 rounded-xl overflow-hidden border border-white/10 hover:border-[#FF5722]/50 transition-colors">
+                <img
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+
+                {/* 主圖標記 */}
+                {index === 0 && (
+                  <div className="absolute top-1 left-1 bg-[#FF5722] text-black text-[8px] px-2 py-0.5 font-bold uppercase tracking-widest">
+                    主圖
+                  </div>
+                )}
+
+                {/* 移除按鈕 */}
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 bg-black/80 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                >
+                  <X size={14} />
+                </button>
+
+                {/* 重排序按鈕 */}
+                <div className="absolute bottom-1 left-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => reorderImages(index, index - 1)}
+                      className="flex-1 bg-black/80 text-white p-1 rounded text-xs flex items-center justify-center hover:bg-[#FF5722]"
+                      title="向左移動"
+                    >
+                      <ArrowLeft size={12} />
+                    </button>
+                  )}
+                  {index < imagePreviews.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={() => reorderImages(index, index + 1)}
+                      className="flex-1 bg-black/80 text-white p-1 rounded text-xs flex items-center justify-center hover:bg-[#FF5722]"
+                      title="向右移動"
+                    >
+                      <ArrowRight size={12} />
+                    </button>
+                  )}
                 </div>
-              </>
-            ) : (
-              <div className="text-center">
-                <ImageIcon size={32} className="text-gray-600 mx-auto mb-2 group-hover:text-[#FF5722] transition-colors" />
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">點擊或拖放圖片上傳</p>
-                <p className="text-[10px] text-gray-600 mt-1 uppercase">JPG, PNG, WEBP (Max 5MB)</p>
+              </div>
+            ))}
+
+            {/* 添加更多按鈕 */}
+            {imagePreviews.length < 5 && (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square border-2 border-dashed border-white/10 hover:border-[#FF5722]/50 transition-colors cursor-pointer flex flex-col items-center justify-center bg-white/5 rounded-xl group"
+              >
+                <Plus size={24} className="text-gray-600 group-hover:text-[#FF5722] transition-colors" />
+                <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-1">新增</span>
               </div>
             )}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*"
-            />
           </div>
+
+          {/* 上傳提示 */}
+          {imagePreviews.length === 0 && (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-32 border-2 border-dashed border-white/10 hover:border-[#FF5722]/50 transition-colors cursor-pointer flex flex-col items-center justify-center bg-white/5 rounded-xl group"
+            >
+              <ImageIcon size={32} className="text-gray-600 mb-2 group-hover:text-[#FF5722] transition-colors" />
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">點擊上傳圖片</p>
+              <p className="text-[10px] text-gray-600 mt-1 uppercase">JPG, PNG, WEBP · 每張最大 5MB · 最多 5 張</p>
+            </div>
+          )}
+
+          {/* 上傳進度條 */}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="mt-3 bg-white/5 rounded-full h-3 overflow-hidden border border-white/10">
+              <div
+                className="bg-[#FF5722] h-full transition-all duration-300 flex items-center justify-center text-[8px] font-bold text-black"
+                style={{ width: `${uploadProgress}%` }}
+              >
+                {Math.round(uploadProgress)}%
+              </div>
+            </div>
+          )}
+
+          {/* 隱藏的文件輸入 - 添加 multiple */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFilesChange}
+            className="hidden"
+            accept="image/*"
+            multiple
+          />
         </div>
 
         <div className="md:col-span-2">
@@ -324,7 +491,11 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({ onSubmit, initialDa
           {loading ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              處理中 (PROCESSING)...
+              {uploadProgress > 0 ? (
+                <>上傳中 {Math.round(uploadProgress)}%...</>
+              ) : (
+                <>處理中 (PROCESSING)...</>
+              )}
             </>
           ) : (
             <>
