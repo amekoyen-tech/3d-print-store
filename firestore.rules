@@ -42,19 +42,35 @@ service cloud.firestore {
         // Only admins can update or delete messages
         allow update, delete: if isAdmin();
       }
+
+      // Modification requests subcollection
+      match /modificationRequests/{requestId} {
+        // Anyone can read modification requests
+        allow read: if true;
+
+        // Anyone can create modification requests (customers)
+        allow create: if true;
+
+        // Admins can do everything
+        allow update, delete: if isAdmin();
+
+        // Customers can update specific fields only (for confirming/rejecting price adjustments)
+        allow update: if !isAdmin() &&
+                        // Only allow updating these specific fields
+                        request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['status', 'priceAdjustment']) &&
+                        // Status can only change to these values
+                        request.resource.data.status in ['approved', 'rejected_by_customer'] &&
+                        // Ensure priceAdjustment exists and is being updated correctly
+                        (request.resource.data.status == 'approved'
+                          ? request.resource.data.priceAdjustment.customerConfirmedAt != null
+                          : true) &&
+                        (request.resource.data.status == 'rejected_by_customer'
+                          ? request.resource.data.priceAdjustment.customerRejectedAt != null
+                          : true);
+      }
     }
 
-    // Modification requests collection
-    match /modificationRequests/{requestId} {
-      // Anyone can create modification requests
-      allow create: if true;
-
-      // Anyone can read modification requests (for tracking)
-      allow read: if true;
-
-      // Only admins can update or delete modification requests
-      allow update, delete: if isAdmin();
-    }
 
     // Order messages collection (top-level, if used)
     match /orderMessages/{messageId} {

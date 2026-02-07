@@ -46,15 +46,34 @@ export interface OrderMessage {
   timestamp: any; // Firestore Timestamp
 }
 
+export type OrderModificationRequestStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'pending_customer_confirmation'
+  | 'rejected_by_customer';
+
+export interface PriceAdjustment {
+  amount: number;
+  reason: string;
+  proposedAt: any; // Firestore Timestamp
+  proposedBy: string;
+  customerConfirmedAt?: any; // Firestore Timestamp
+  customerRejectedAt?: any; // Firestore Timestamp
+}
+
 export interface OrderModificationRequest {
   id: string;
   requestedBy: 'customer'; // 只有用戶能提出
   requestType: 'change_color' | 'change_quantity' | 'change_address' | 'other';
   description: string; // 修改說明
-  status: 'pending' | 'approved' | 'rejected';
+  status: OrderModificationRequestStatus;
   adminResponse?: string; // 商家回應
+  adminRespondedAt?: any; // Firestore Timestamp
   createdAt: any;
   processedAt?: any;
+  priceAdjustment?: PriceAdjustment;
+  estimatedDateAdjustment?: string; // 新的預計完成日期
 }
 
 export interface Order {
@@ -71,6 +90,14 @@ export interface Order {
   shippingFee: number;
   items: CartItem[];
   totalPrice: number;
+  effectiveTotalPrice?: number;
+  priceAdjustments?: Array<{
+    modificationRequestId: string;
+    amount: number;
+    reason: string;
+    appliedAt: any; // Firestore Timestamp
+    appliedBy: string;
+  }>;
   status: OrderStatus;
   estimatedCompletionDate?: string | null;
   adminNotes?: string;

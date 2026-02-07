@@ -47,6 +47,37 @@ export const useOrders = () => {
     await deleteDoc(doc(db, 'orders', id));
   };
 
+  const updateEstimatedDate = async (id: string, newDate: string) => {
+    const ref = doc(db, 'orders', id);
+    await updateDoc(ref, { estimatedCompletionDate: newDate });
+  };
+
+  const batchUpdateEstimatedDate = async (
+    orderIds: string[],
+    newDate: string
+  ): Promise<{ success: string[]; failed: string[] }> => {
+    const success: string[] = [];
+    const failed: string[] = [];
+
+    const results = await Promise.allSettled(
+      orderIds.map(async (id) => {
+        await updateEstimatedDate(id, newDate);
+        return id;
+      })
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        success.push(orderIds[index]);
+      } else {
+        failed.push(orderIds[index]);
+        console.error(`Failed to update order ${orderIds[index]}:`, result.reason);
+      }
+    });
+
+    return { success, failed };
+  };
+
   const calculateEstimatedCompletion = async () => {
     try {
       // Fetch products to get times
@@ -92,5 +123,14 @@ export const useOrders = () => {
     }
   };
 
-  return { orders, loading, error, updateOrderStatus, deleteOrder, calculateEstimatedCompletion };
+  return {
+    orders,
+    loading,
+    error,
+    updateOrderStatus,
+    deleteOrder,
+    calculateEstimatedCompletion,
+    updateEstimatedDate,
+    batchUpdateEstimatedDate
+  };
 };
